@@ -22,6 +22,16 @@ typedef struct
     char mesg_data[MAXMESSAGEDATA]; /* Small char array contains */
 } Mesg;
 
+int ReadMessage(int queue, Mesg* msg, long msg_type);
+int ReadMessageCopy(int queue, Mesg* msg, long msg_type);
+int RemoveClientFromList(int msgQueue, int client);
+int SendMessage(int queue, Mesg* msg);
+int AddClientToList(int msgQueue, int client);
+int SendFinalMessage(int queue, Mesg* msg);
+int RemoveQueue(int queue);
+int OpenQueue(void);
+int main(void);
+
 
 int ReadMessage(int queue, Mesg* msg, long msg_type)
 {
@@ -48,10 +58,67 @@ int ReadMessageCopy(int queue, Mesg* msg, long msg_type)
     return 0;
 }
 
-int RemoveClientFromList(int client)
+int RemoveClientFromList(int msgQueue, int client)
 {
+    //need to read every message in the queue and fix it eventually.
+    Mesg *oldMsg, *newMsg;
 
-    return -1;
+    oldMsg = (Mesg*)malloc(sizeof(Mesg));
+    newMsg = (Mesg*)malloc(sizeof(Mesg));
+
+    //printf("Reading message");
+    if(ReadMessage(msgQueue, oldMsg, 0) < 0)
+    {
+        //printf("RemoveClientFromList: No more messages.\n");
+        return -1;
+    }
+    //printf("[num:%d]\n", oldMsg.num_sockets);
+    //printf("check message][");
+
+    //msg here, modify it to add in another client
+    if(oldMsg->num_sockets <= 0)
+    {
+        printf("RemoveClientFromList: num_sockets lower than zero...\n");
+        return -1;
+    }
+
+    //printf("check message2\n");
+    //Do not allow too many connections
+    if(oldMsg->num_sockets >= MAXCONNECTIONS)
+    {
+        printf("RemoveClientFromList: num{%d} > %d...\n", oldMsg->num_sockets, MAXCONNECTIONS);
+        return -1;
+    }
+    //printf("removing the client\n");
+
+    //Add in the new client and increase the number of sockets.
+    for(int i = 0; i < oldMsg->num_sockets; i++)
+    {
+        //printf("{%d}", i);
+        if(oldMsg->sockets[i] != client)
+        {
+            newMsg->sockets[i] = oldMsg->sockets[i];
+        }
+    }
+
+    newMsg->num_sockets = oldMsg->num_sockets - 1;
+    newMsg->mesg_type = 1;
+    memcpy(newMsg->mesg_data, oldMsg->mesg_data, sizeof(oldMsg->mesg_data));
+
+    //printf("sending message");
+
+    //Replace the old message
+    if(SendMessage(msgQueue, newMsg) < 0)
+    {
+        printf("RemoveClientFromList: sendmessage failure.\n");
+        return -1;
+    }
+    //printf("Donerino message");
+
+    free(oldMsg);
+    free(newMsg);
+
+    return 0;
 }
 
 int SendMessage(int queue, Mesg* msg)
