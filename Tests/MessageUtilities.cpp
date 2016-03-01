@@ -3,9 +3,9 @@
 //
 
 #include "MessageUtilities.h"
-int ReadMessage(int queue, Mesg* msg, long msg_type)
+int RemoveMessage(int queue, Mesg* msg, long msg_type)
 {
-    int rc = msgrcv(queue, msg, sizeof(Mesg), msg_type,0);
+    int rc = msgrcv(queue, msg, sizeof(Mesg), msg_type, REMOVEMSG);
     if(rc < 0)
     {
         perror("msgrcv failed:\n");
@@ -15,10 +15,10 @@ int ReadMessage(int queue, Mesg* msg, long msg_type)
     return 0;
 }
 
-int ReadMessageCopy(int queue, Mesg* msg, long msg_type)
+int ReadMessage(int queue, Mesg* msg, long msg_type)
 {
     //int flags = MSG_COPY | IPC_NOWAIT;
-    int rc = msgrcv(queue, msg, MAXMSGSIZE, msg_type, MSG_COPY | IPC_NOWAIT);
+    int rc = msgrcv(queue, msg, MAXMSGSIZE, msg_type, READMSG);
     if(rc < 0)
     {
         perror("instant return\n");
@@ -47,7 +47,7 @@ int RemoveClientFromList(int msgQueue, int client)
 
 
     //printf("Reading message");
-    if(ReadMessage(msgQueue, oldMsg, 0) < 0)
+    if(RemoveMessage(msgQueue, oldMsg, 0) < 0)
     {
         //printf("RemoveClientFromList: No more messages.\n");
         return -1;
@@ -140,7 +140,7 @@ int AddClientToList(int msgQueue, int client)
     newMsg = (Mesg*)malloc(sizeof(Mesg));
 
     //printf("Reading message");
-    if(ReadMessage(msgQueue, oldMsg, 0) < 0)
+    if(RemoveMessage(msgQueue, oldMsg, 0) < 0)
     {
         //printf("AddClientToList: No more messages.\n");
         return -1;

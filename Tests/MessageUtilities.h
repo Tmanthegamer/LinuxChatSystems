@@ -17,8 +17,8 @@
 #include <sys/msg.h>
 #include "Message.h"
 
+int RemoveMessage(int queue, Mesg* msg, long msg_type);
 int ReadMessage(int queue, Mesg* msg, long msg_type);
-int ReadMessageCopy(int queue, Mesg* msg, long msg_type);
 int RemoveClientFromList(int msgQueue, int client);
 int SendMessage(int queue, Mesg* msg);
 int AddClientToList(int msgQueue, int client);
