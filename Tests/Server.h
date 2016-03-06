@@ -7,7 +7,6 @@
 
 
 #include "PacketUtilities.h"
-#include "MessageUtilities.h"
 
 int InitServer(void);
 

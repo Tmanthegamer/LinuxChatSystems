@@ -8,6 +8,15 @@
 #include <string.h>
 #include <string>
 #include <stdio.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+
 int PacketizeData(char* data, int datasize, int packetsize);
 int PreparePacketsToSend(char** packetArray, int totalPackets, char* data, int datasize, int packetsize);
 int GetTotalNumberOfPackets(int datasize, int packetsize);

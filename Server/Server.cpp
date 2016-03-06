@@ -39,7 +39,7 @@
 #include <unistd.h>
 
 #define SERVER_TCP_PORT 7000	// Default port
-#define BUFLEN	255		//Buffer length
+#define BUFLEN	255		        // Buffer length
 #define TRUE	1
 #define LISTENQ	5
 #define MAXLINE 4096
@@ -50,7 +50,7 @@ static void SystemFatal(const char* );
 int main (int argc, char **argv)
 {
     int i, maxi, nready, arg;
-    size_t bytes_to_read;
+    size_t bytes_to_read, total_bytes_read;
     int listen_sd, new_sd, sockfd, port, maxfd, client[FD_SETSIZE];
     socklen_t client_len;
     struct sockaddr_in server, client_addr;
@@ -151,18 +151,22 @@ int main (int argc, char **argv)
                 {
                     bp += n;
                     bytes_to_read -= n;
+                    total_bytes_read += n;
                 }
 
-                if (n == 0) // connection closed by client
+                if(n == 0 && total_bytes_read == 0) //The client has disconnected.
                 {
                     printf(" Remote Address:  %s closed connection\n", inet_ntoa(client_addr.sin_addr));
                     close(sockfd);
                     FD_CLR(sockfd, &allset);
                     client[i] = -1;
                 }
-
-                write(sockfd, buf, BUFLEN);   // echo to client
-
+                else
+                {
+                    WriteToAllClients(buf, total_bytes_read, client, maxi);
+                    total_bytes_read = 0;
+                }
+                //write(sockfd, buf, BUFLEN);   // echo to client
 
 
                 if (--nready <= 0)
@@ -173,9 +177,28 @@ int main (int argc, char **argv)
     return(0);
 }
 
-// Prints the error stored in errno and aborts the program.
-static void SystemFatal(const char* message)
+void WriteToAllClients(char* data, size_t datasize, int* clients, int maxi)
 {
+    int sockfd = 0;
+
+    if(maxi >= FD_SETSIZE)
+    {
+        printf ("Too many clients in WriteToAllClients\n");
+        exit(1);
+    }
+
+    for (int i = 0; i <= maxi; i++)
+    {
+        if ((sockfd = clients[i]) < 0)
+            continue;
+
+        //Ignore any errors when failing to write to a client.
+        write(sockfd, data, datasize);   // echo to client
+    }
+
+}
+
+static void SystemFatal(const char* message) {
     perror (message);
     exit (EXIT_FAILURE);
 }

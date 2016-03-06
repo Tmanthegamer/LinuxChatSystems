@@ -5,8 +5,7 @@
 #ifndef MESSAGEQUEUE_CLIENT_H
 #define MESSAGEQUEUE_CLIENT_H
 
-#include "PacketUtilities.h"
-#include "MessageUtilities.h"
+#include "../PacketUtilities.h"
 
 int InitClient(void);
 
