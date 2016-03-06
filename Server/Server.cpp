@@ -50,8 +50,11 @@ static void SystemFatal(const char* );
 int main (int argc, char **argv)
 {
     int i, maxi, nready, arg;
-    size_t bytes_to_read, total_bytes_read;
     int listen_sd, new_sd, sockfd, port, maxfd, client[FD_SETSIZE];
+    size_t bytes_to_read, total_bytes_read;
+    
+
+    
     socklen_t client_len;
     struct sockaddr_in server, client_addr;
     char *bp, buf[BUFLEN];
@@ -154,19 +157,19 @@ int main (int argc, char **argv)
                     total_bytes_read += n;
                 }
 
-                if(n == 0 && total_bytes_read == 0) //The client has disconnected.
+                if(total_bytes_read == 0) //The client has disconnected.
                 {
                     printf(" Remote Address:  %s closed connection\n", inet_ntoa(client_addr.sin_addr));
                     close(sockfd);
                     FD_CLR(sockfd, &allset);
                     client[i] = -1;
+                    --maxi;
                 }
-                else
+                else if(n == 0)
                 {
                     WriteToAllClients(buf, total_bytes_read, client, maxi);
                     total_bytes_read = 0;
                 }
-                //write(sockfd, buf, BUFLEN);   // echo to client
 
 
                 if (--nready <= 0)
@@ -193,7 +196,7 @@ void WriteToAllClients(char* data, size_t datasize, int* clients, int maxi)
             continue;
 
         //Ignore any errors when failing to write to a client.
-        write(sockfd, data, datasize);   // echo to client
+        send(sockfd, data, datasize, 0);   // echo to client
     }
 
 }
