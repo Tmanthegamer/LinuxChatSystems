@@ -79,6 +79,13 @@ int main (int argc, char **argv)
     }
     bcopy(hp->h_addr, (char *)&server.sin_addr, hp->h_length);
 
+    //SO_REUSEADDR
+    int enable = 1;
+    if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+    {
+        printf("setsockopt(SO_REUSEADDR) failed.\n");
+    }
+
     // Connecting to the server
     if (connect (sd, (struct sockaddr *)&server, sizeof(server)) == -1)
     {
@@ -92,7 +99,10 @@ int main (int argc, char **argv)
 
 
 #ifndef ECHO
-    printf("Transmit:\n");
+    
+    while(1)
+    {
+        printf("Transmit:\n");
     fgets (sbuf, BUFLEN, stdin);
 
     // Transmit data through the socket
@@ -110,13 +120,15 @@ int main (int argc, char **argv)
     }
     printf ("%s\n", rbuf);
     fflush(stdout);
+    }
+
 #else
     printf("I'm echoing....\n");
     while(1)
     {
         // client makes repeated calls to recv until no more data is expected to arrive.
         n = 0;
-        while ((n = recv (sd, bp, bytes_to_read, 0)) < BUFLEN)
+        while ((n = recv (sd, bp, BUFLEN, 0)) < BUFLEN)
         {
             bp += n;
             bytes_to_read -= n;
