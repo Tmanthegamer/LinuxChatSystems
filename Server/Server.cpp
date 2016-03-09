@@ -37,81 +37,86 @@ int Server::InitListenSocket()
     if ((_listen_sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
 		SystemFatal("Cannot Create Socket!");
-		return 1;
+		return SOCKETERROR;
 	}
-	return 0;
+	return SUCCESS;
 }
 
 int Server::SetSocketOpt()
 {
 	// set SO_REUSEADDR so port can be resused imemediately after exit, i.e., after CTRL-c
     int flag = SOCKOPTFLAG;
-    if (setsockopt (listen_sd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(arg)) == -1)
+    if (setsockopt (_listen_sd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag)) == -1)
 	{
         SystemFatal("setsockopt");
-		return 1;
+		return SOCKOPTERROR;
 	}
-	return 0;
+	return SUCCESS;
 }
 
-int Server::BindSocketAndListen(short port)
+int Server::BindSocketAndListen()
 {
 	// Bind an address to the socket
     bzero((char *)&_server, sizeof(struct sockaddr_in));
     _server.sin_family = AF_INET;
-    _server.sin_port = htons(port);
+    _server.sin_port = htons(_port);
     _server.sin_addr.s_addr = htonl(INADDR_ANY); // Accept connections from any client
 
     if (bind(_listen_sd, (struct sockaddr *)&_server, sizeof(_server)) == -1)
 	{
 		SystemFatal("bind error");
-		return 1;
+		return SOCKETERROR;
 	}
 
     if (listen(_listen_sd, LISTENQ) == -1) // queue up to LISTENQ connect requests
 	{
 		SystemFatal("listen failure");
-		return 1;
+		return SOCKETERROR;
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
-int Server::WriteToAllClients(char* data, size_t datasize, int* clients, int maxi)
+int Server::WriteToAllClients(char* data, size_t datasize, int client)
 {
-	int sockfd = 0;
-
-	printf("clients:%d\n", maxi);
-	if(maxi >= FD_SETSIZE)
+	if(_maxi >= FD_SETSIZE)
 	{
 			fprintf (stderr, "Too many clients in WriteToAllClients\n");
 			exit(1);
 	}
 
-	for (int i = 0; i <= maxi; i++)
+	for (int i = 0; i <= _maxi; i++)
 	{
-			printf("[socket:%d]\n", clients[i]);
-			if ((sockfd = clients[i]) < 0)
-					continue;
+		printf("[socket:%d]\n", _client[i]);
+		if (_client[i] < 0 || _client[i] == client)
+            continue;
 
-			printf("Sent:[%s] Size:[%lu] Client:[%d]\n", data, datasize, clients[i]);
-			//Ignore any errors when failing to write to a client.
-			send(sockfd, data, datasize, 0);	 // echo to client
+		printf("Sent:[%s] Size:[%lu] Client:[%d]\n", data, datasize, _client[i]);
+
+        //Ignore any errors when failing to write to a client.
+		send(_client[i], data, datasize, 0);	 // echo to client
 	}
+
+    return SUCCESS;
 }
 
-int Server::ReceivePacketFromClient(int client_sd)
+int Server::ReceivePacketFromClient(int client_sd, int index)
 {
-	char 	buf[BUFLEN];	//Container for incoming message.
-	char 	*bp = buf;		//Pointer to the receiving buffer.
-	size_t	bytes_to_read;	//Ensures that the buffer will not overflow
+	char 	buf[BUFLEN];	    //Container for incoming message.
+	char 	*bp = buf;		    //Pointer to the receiving buffer.
+	size_t	bytes_to_read;	    //Ensures that the buffer will not overflow
+    size_t  total_bytes_read;   //Running total of the bytes received.
+    ssize_t n;                  //Keeps track of the incoming bytes.
 
-	//TODO make buflen really big and stop reading packets when
-	//		there is an EOT detected
+
+	/*
+	 * TODO make buflen really big and stop reading packets when
+	    there is an EOT detected
+	 */
 	bytes_to_read = BUFLEN;
 
 	//Keep reading until you reach an EOT at the end of the packet
-	while ((n = read(sockfd, bp, bytes_to_read)) > 0)
+	while ((n = read(client_sd, bp, bytes_to_read)) > 0)
 	{
 		bp += n;
 		bytes_to_read -= n;
@@ -121,65 +126,71 @@ int Server::ReceivePacketFromClient(int client_sd)
 	if(total_bytes_read == 0) //The client has disconnected.
 	{
 		printf(" Remote Address:  %s closed connection\n", inet_ntoa(_client_addr.sin_addr));
-		close(sockfd);
-		FD_CLR(sockfd, &allset);
-		client[i] = -1;
-		--maxi;
+		CloseClient(client_sd, index);
 	}
 	else if(n == 0)	//If all the data has been read.
 	{
-		WriteToAllClients(buf, total_bytes_read, client, maxi);
+		WriteToAllClients(buf, total_bytes_read, client_sd);
 		total_bytes_read = 0;
 	}
 	else if(n == -1)
 	{
 		//TODO Handle socket error
-		return 1;
+		return SOCKETERROR;
 	}
 
-	return 0;
+	return SUCCESS;
 }
 
 int Server::SelectIncomingData()
 {
-	socklen_t client_len = 0;
+    fd_set rset;    // Temporary instance of _all_set used for select()
+    int nready;     // Number of sockets that have received data.
+    int error;
 
-	//Initialize the Vector with bad sockets
-	client(FD_SETSIZE, -1);
+    //Initialize the Vector with bad sockets
+    std::vector<int> temp(FD_SETSIZE, -1);
+	_client = temp;
 
-	_maxfd	= listen_sd;	// initialize
+	_maxfd	= _listen_sd;	// initialize
     _maxi	= -1;			// index into client[] array
 
-    /*for (i = 0; i < FD_SETSIZE; i++)
-	{
-		client[i] = -1;             // -1 indicates available entry
-	}*/
-
-    FD_ZERO(&allset);
-    FD_SET(listen_sd, &allset);
+    FD_ZERO(&_all_set);
+    FD_SET(_listen_sd, &_all_set);
 
 	while (true)
     {
-        rset = allset;               // structure assignment
-        nready = select(maxfd + 1, &rset, NULL, NULL, NULL);
+        rset = _all_set;               // structure assignment
+        nready = select(_maxfd + 1, &rset, NULL, NULL, NULL);
 
-        if (FD_ISSET(listen_sd, &rset)) // new client connection
+        if (FD_ISSET(_listen_sd, &rset)) // new client connection
         {
-			AcceptNewConnection();
+			if((error = AcceptNewConnection()) > 0)
+            {
+                if(error == TOOMANYCLIENTSERROR) //Acceptable error, ignore request.
+                {
+                    //TODO print out a warning for too many clients
+                }
+                else if(error == SOCKETERROR)
+                {
+                    //TODO destroy all connections, critical error.
+                    return SOCKETERROR;
+                }
+            }
 
 			// Check if there are no more interactions
 			if (--nready <= 0)
 				continue;
         }
 
-        for (i = 0; i <= maxi; i++)	// check all clients for data
+        for (int i = 0; i <= _maxi; i++)	// check all clients for data
         {
-            if ((sockfd = client[i]) < 0)
+            if (_client[i] < 0)
                 continue;
 
-            if (FD_ISSET(sockfd, &rset))
+            if (FD_ISSET(_client[i], &rset))
             {
-				ReceivePacketFromClient(sockfd);
+				ReceivePacketFromClient(_client[i], i);
 
 				// Check if there are no more interactions
 				if (--nready <= 0)
@@ -189,21 +200,22 @@ int Server::SelectIncomingData()
 
     } //End of while(true) loop
 
-	return 0;
+	return SUCCESS;
 }
 
 int Server::AcceptNewConnection()
 {
 	int new_sd = 0;
+    int i;
 	socklen_t client_len = sizeof(_client_addr);
 
 	if ((new_sd = accept(_listen_sd, (struct sockaddr *) &_client_addr, &client_len)) == -1)
 	{
 		SystemFatal("accept error");
-		return 1;
+		return SOCKETERROR;
 	}
 
-	printf(" Remote Address:  %s\n", inet_ntoa(client_addr.sin_addr));
+	printf(" Remote Address:  %s\n", inet_ntoa(_client_addr.sin_addr));
 
 	for (i = 0; i < FD_SETSIZE; i++)
 	{
@@ -217,10 +229,10 @@ int Server::AcceptNewConnection()
 	if (i == FD_SETSIZE)
 	{
 		printf ("Too many clients\n");
-		return 1;
+		return TOOMANYCLIENTSERROR;
 	}
 
-	FD_SET (new_sd, &_allset); 	// add new descriptor to set
+	FD_SET (new_sd, &_all_set); 	// add new descriptor to set
 
 	if (new_sd > _maxfd)
 		_maxfd = new_sd;			// For select
@@ -228,7 +240,7 @@ int Server::AcceptNewConnection()
 	if (i > _maxi)
 		_maxi = i;				// new max index for client vector
 
-	return 0;
+	return SUCCESS;
 }
 
 void Server::SystemFatal(const char* message)
@@ -236,14 +248,72 @@ void Server::SystemFatal(const char* message)
 	perror (message);
 }
 
-int Server::CloseClient(int client_sd)
+int Server::CloseClient(int client_sd, int index)
 {
+    close(client_sd);
+    FD_CLR(client_sd, &_all_set);
+    _client[index] = -1;
+    --_maxi;
+    return SUCCESS;
+}
 
+void Server::SetPort(int _port) {
+    Server::_port = _port;
 }
 
 int main (int argc, char **argv)
 {
-    int i, nready, arg;
+    Server *svr = new Server();
+
+    if(svr->InitListenSocket())
+    {
+        std::cerr << "Can't initiate listen socket" << std::endl;
+        delete svr;
+        exit(1);
+    }
+
+    if(svr->SetSocketOpt())
+    {
+        std::cerr << "Can't set the socket operation." << std::endl;
+        delete svr;
+        exit(1);
+    }
+
+    switch(argc)
+    {
+        case 1:
+            svr->SetPort(SERVER_TCP_PORT);	// Use the default port
+            break;
+        case 2:
+            svr->SetPort(atoi(argv[1]));	// Get user specified port
+            break;
+        default:
+            std::cerr << "Usage: svr [port]" << std::endl;
+            delete svr;
+            exit(1);
+    }
+
+    if(svr->BindSocketAndListen())
+    {
+        std::cerr << "Socket error, unable to bind and listen." << std::endl;
+        delete svr;
+        exit(1);
+    }
+
+    //Infinite loop that waits for incoming data.
+    if(svr->SelectIncomingData())
+    {
+        std::cerr << "Socket error, shutting down resources." << std::endl;
+        delete svr;
+        exit(1);
+    }
+
+    delete svr;
+    return 0;
+
+
+
+    /*int i, nready, arg;
     int new_sd, sockfd;
     size_t bytes_to_read, total_bytes_read;
 
@@ -359,7 +429,7 @@ int main (int argc, char **argv)
                 }
                 else if(n == 0)
                 {
-                    WriteToAllClients(buf, total_bytes_read, client, maxi);
+                    WriteToAllClients(buf, total_bytes_read, _client[i], maxi);
                     total_bytes_read = 0;
                 }
 
@@ -368,6 +438,6 @@ int main (int argc, char **argv)
                     break;        // no more readable descriptors
             }
         }
-    }
+    }*/
     return(0);
 }
