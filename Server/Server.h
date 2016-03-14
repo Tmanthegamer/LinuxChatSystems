@@ -26,7 +26,7 @@
  * select work
  */
 
-#define SERVER_TCP_PORT 	7000	// Default port
+#define SERVER_TCP_PORT 	9654	// Default port
 #define BUFLEN	        	255	 	// Buffer lengtn
 #define LISTENQ	        	5
 #define MAXLINE         	4096

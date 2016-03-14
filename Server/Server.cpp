@@ -79,7 +79,8 @@ int Server::BindSocketAndListen()
 
 int Server::WriteToAllClients(char* data, size_t datasize, int client)
 {
-	if(_maxi >= FD_SETSIZE)
+	char ack[1] = { ACK };
+    if(_maxi >= FD_SETSIZE)
 	{
 			fprintf (stderr, "Too many clients in WriteToAllClients\n");
 			exit(1);
@@ -88,13 +89,23 @@ int Server::WriteToAllClients(char* data, size_t datasize, int client)
 	for (int i = 0; i <= _maxi; i++)
 	{
 		printf("[socket:%d]\n", _client[i]);
-		if (_client[i] < 0 || _client[i] == client)
+		if (_client[i] < 0)
             continue;
+		else if(_client[i] == client)
+		{
+            //Send a single EOT
+			send(_client[i], ack, 1, 0);	 // echo to client that the message was uploaded.
+		}
+		else{
+			printf("Sent:[%s] Size:[%lu] Client:[%d]\n", data, datasize, _client[i]);
 
-		printf("Sent:[%s] Size:[%lu] Client:[%d]\n", data, datasize, _client[i]);
+			//Ignore any errors when failing to write to a client.
+			send(_client[i], data, datasize, 0);	 // echo to client
+		}
 
-        //Ignore any errors when failing to write to a client.
-		send(_client[i], data, datasize, 0);	 // echo to client
+
+
+
 	}
 
     return SUCCESS;
@@ -106,7 +117,7 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 	char 	*bp = buf;		    //Pointer to the receiving buffer.
 	size_t	bytes_to_read;	    //Ensures that the buffer will not overflow
     size_t  total_bytes_read;   //Running total of the bytes received.
-    ssize_t n;                  //Keeps track of the incoming bytes.
+    size_t n;                  //Keeps track of the incoming bytes.
 
 
 	/*
@@ -121,6 +132,9 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 		bp += n;
 		bytes_to_read -= n;
 		total_bytes_read += n;
+
+        if((bp-1)[0] == EOT)
+            break;
 	}
 
 	if(total_bytes_read == 0) //The client has disconnected.
@@ -131,7 +145,6 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 	else if(n == 0)	//If all the data has been read.
 	{
 		WriteToAllClients(buf, total_bytes_read, client_sd);
-		total_bytes_read = 0;
 	}
 	else if(n == -1)
 	{
@@ -157,6 +170,8 @@ int Server::SelectIncomingData()
 
     FD_ZERO(&_all_set);
     FD_SET(_listen_sd, &_all_set);
+
+    std::cerr << "Going into select mode." << std::endl;
 
 	while (true)
     {

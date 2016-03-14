@@ -1,4 +1,4 @@
-CC = g++ -Wall -pedantic -W -ggdb
+CC = g++ -Wall -pedantic -W -ggdb -pthread
 
 make:
 all: clean clnt svr echo

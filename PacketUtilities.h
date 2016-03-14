@@ -17,6 +17,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#define EOT 0x04
+#define ACK 0x06
+
 int PacketizeData(char* data, int datasize, int packetsize);
 int PreparePacketsToSend(char** packetArray, int totalPackets, char* data, int datasize, int packetsize);
 int GetTotalNumberOfPackets(int datasize, int packetsize);

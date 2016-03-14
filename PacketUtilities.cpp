@@ -22,7 +22,7 @@ SendDataToClients
 
 #endif
 
-int SendDataToClients(char* data, int datasize, int* clientArray, int numClients, int packetsize)
+char** SendDataToClients(char* data, int datasize, int* clientArray, int numClients, int packetsize)
 {
     char** packetArray;
     int totalPackets = GetTotalNumberOfPackets(datasize, packetsize);
@@ -33,10 +33,10 @@ int SendDataToClients(char* data, int datasize, int* clientArray, int numClients
     {
         printf("SendDataToClients: Failure in preparing packets.\n");
         FreeArray(&packetArray, totalPackets);
-        return -1;
+        return 0;
     }
-    //SendPacketsToAllClients
-    FreeArray(&packetArray, totalPackets);
+
+    return packetArray;
 }
 
 int GetTotalNumberOfPackets(int datasize, int packetsize)
@@ -52,41 +52,6 @@ int GetTotalNumberOfPackets(int datasize, int packetsize)
     }
 
     return totalPackets;
-}
-
-/*
- * Unfinished method, needs more arguments for TCP sending.
- */
-int SendPacketsToAllClients(char** packetArray, int totalPackets, int* socketArray, int numClients)
-{
-    int curClient   = 0;    // Number of clients that are being processed.
-    int numSent     = 0;    // Number of packets sent to the client.
-
-    while(curClient < numClients)
-    {
-        for(int i = 0; i < totalPackets; i++)
-        {
-#if 0 //Pseudocode for sending a TCP message to each client
-
-            Use TCP to send packetArray[i] to the client (who is: msg->sockets[curClient] )
-            If there was an issue sending to the client
-                the client disconnected?
-                    Remove the client from the list of clients using
-                    >>RemoveClientFromList(queue, msg->sockets[curClient]);
-                    Now ignore this bad client and move on to the next client.
-                another error?
-                    Don't' have an answer for this yet.
-            Else there was no issue with this client.
-                Move on to the next client if there is one.
-#endif
-
-            printf("<client:%d><packet:%d>", curClient, i);
-        }
-
-        curClient++;
-    }
-
-    return -1;
 }
 
 int PreparePacketsToSend(char** packetArray, int totalPackets, char* data, int datasize, int packetsize)
