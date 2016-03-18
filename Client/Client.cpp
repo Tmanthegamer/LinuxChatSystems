@@ -80,111 +80,6 @@ int main (int argc, char **argv)
         }
     }
 
-    /*int n, bytes_to_read;
-    int sd, port;
-    struct hostent	*hp;
-    struct sockaddr_in server;
-    char  *host, *bp, rbuf[BUFLEN], sbuf[BUFLEN], **pptr;
-    char str[16];
-
-    switch(argc)
-    {
-        case 2:
-            host =	argv[1];	// Host name
-            port =	SERVER_TCP_PORT;
-            break;
-        case 3:
-            host =	argv[1];
-            sscanf(argv[2], "%d", &port); // User specified port
-            break;
-        default:
-            host = "127.0.0.1";
-            port = 7000;
-            //fprintf(stderr, "Usage: %s host [port]\n", argv[0]);
-            //return -1;
-    }
-
-    // Create the socket
-    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-    {
-        perror("Cannot create socket");
-        return -1;
-    }
-    bzero((char *)&server, sizeof(struct sockaddr_in));
-    server.sin_family = AF_INET;
-    server.sin_port = htons(port);
-    if ((hp = gethostbyname(host)) == NULL)
-    {
-        fprintf(stderr, "Unknown server address\n");
-        return -1;
-    }
-    bcopy(hp->h_addr, (char *)&server.sin_addr, hp->h_length);
-
-    //SO_REUSEADDR
-    int enable = 1;
-    if(setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
-    {
-        printf("setsockopt(SO_REUSEADDR) failed.\n");
-    }
-
-    // Connecting to the server
-    if (connect (sd, (struct sockaddr *)&server, sizeof(sockaddr_in)) == -1)
-    {
-        fprintf(stderr, "Can't connect to server\n");
-        perror("connect");
-        return -1;
-    }
-    printf("Connected:    Server Name: %s\n", hp->h_name);
-    pptr = hp->h_addr_list;
-    printf("\t\tIP Address: %s\n", inet_ntop(hp->h_addrtype, *pptr, str, sizeof(str)));
-
-
-#ifndef ECHO
-    
-    while(1)
-    {
-        printf("Transmit:\n");
-        fgets (sbuf, BUFLEN, stdin);
-
-        // Transmit data through the socket
-        send (sd, sbuf, BUFLEN, 0);
-
-        printf("Receive:\n");
-        bp = rbuf;
-        bytes_to_read = BUFLEN;
-        // client makes repeated calls to recv until no more data is expected to arrive.
-        n = 0;
-        while ((n = recv (sd, bp, bytes_to_read, 0)) < BUFLEN)
-        {
-            bp += n;
-            bytes_to_read -= n;
-        }
-        printf ("%s\n", rbuf);
-        fflush(stdout);
-    }
-    close (sd);
-    return (0);
-
-#else
-    printf("I'm echoing....\n");
-    while(1)
-    {
-        // client makes repeated calls to recv until no more data is expected to arrive.
-        n = 0;
-        while ((n = recv (sd, bp, BUFLEN, 0)) < BUFLEN)
-        {
-            bp += n;
-            bytes_to_read -= n;
-        }
-        printf ("%s\n", rbuf);
-        if(rbuf[0] == 'q')
-            break;
-    }
-
-    close (sd);
-    return (0);
-#endif
-*/
 }
 
 int Client::_socket = -1;
@@ -203,6 +98,9 @@ int Client::InitClient(char* host, short port)
         return error;
 
     if((error = Connect()))
+        return error;
+
+    if((error = SetUserName()))
         return error;
 
     return SUCCESS;
@@ -244,9 +142,6 @@ int Client::SendAndReceiveData(void)
 {
     char sbuf[MAX_BUFFER] = {'\0'}; //Send buffer which will store the message.
     int errorCount = 0;             //Allows 5 failures before terminating the client.
-    char rbuf[MAX_BUFFER] = {'\0'}; //TEMP KILL THIS LATER
-    char* bp;                       //TEMP KILL THIS LATER
-    size_t n = 0, bytes_to_read = 0;//TEMP KILL THIS LATER
     size_t bytes_to_send;
 
     CreateReadThread();
@@ -254,10 +149,14 @@ int Client::SendAndReceiveData(void)
     while(errorCount < 5)
     {
         std::cout << "Transmit: " << std::endl;
-        fgets (sbuf, MAX_BUFFER, stdin);
+        fgets (sbuf, MAX_BUFFER-1, stdin);
 
-        bytes_to_send = strlen(sbuf);
-        sbuf[bytes_to_send-1] = EOT;
+
+
+        bytes_to_send = strlen(sbuf) + 1;
+        printf("%u\n", bytes_to_send);
+        sbuf[bytes_to_send - 2] = '\0';
+        sbuf[bytes_to_send - 1] = EOT;
 
         // Transmit data through the socket
         if(SendData(sbuf, bytes_to_send))
@@ -265,25 +164,9 @@ int Client::SendAndReceiveData(void)
             std::cerr << "Client unable to send data at this time." << std::endl;
             errorCount++;
         }
-
-        printf("Receive:\n");
-        bp = rbuf;
-        bytes_to_read = BUFLEN;
-        // client makes repeated calls to recv until no more data is expected to arrive.
-        n = 0;
-        while ((n = recv (_socket, bp, bytes_to_read, 0)) < BUFLEN)
-        {
-            if(n == 1 && bp[0] == ACK)
-            {
-                break;
-            }
-
-            bp += n;
-            bytes_to_read -= n;
-        }
-
-        n != 1 ? printf ("Received: [%s]\n", rbuf) : printf("Message Delivered.\n");
+        printf("errorCount:%d\n", errorCount);
         fflush(stdout);
+
     }
 
     return SUCCESS;
@@ -317,34 +200,32 @@ int Client::SendData(char* data, size_t datasize)
 //Size is used for determining how much data to send or receive depending on purpose
 int Client::ReceiveData(char* data, size_t* size)
 {
-    bool recvComplete = false;
     char recvBuffer[MAX_BUFFER] = {'\0'};
     char* recvPointer = recvBuffer;
     ssize_t bytesRecv = 0;
     ssize_t totalBytes = 0;
     size_t maximum_bytes = MAX_BUFFER;
 
-    while(!recvComplete)
+    while ((bytesRecv = recv (_socket, recvPointer, maximum_bytes, 0)) != SOCKETERROR)
     {
-        if((bytesRecv = recv (_socket, recvPointer, maximum_bytes, 0)) == SOCKETERROR)
+        totalBytes += bytesRecv;
+        if(bytesRecv == 1 && recvPointer[0] == ACK) // Received your own message?
         {
-            std::cerr << "Unable to send, socket error." << std::endl;
-            return SOCKETERROR;
+            break;
         }
 
-        if((bytesRecv == 1 && recvBuffer[0] == ACK) || recvPointer[bytesRecv - 1] == EOT)
+        if(recvBuffer[totalBytes - 1] == EOT) // Message received by third party?
         {
-            recvComplete = true;
+            break;
+        }
+
+        if(maximum_bytes <= 0)
+        {
+            return BUFFEROVERFLOW;
         }
 
         recvPointer += bytesRecv;
         maximum_bytes -= bytesRecv;
-        totalBytes += bytesRecv;
-
-        if(maximum_bytes <= 0 && !recvComplete)
-        {
-            return BUFFEROVERFLOW;
-        }
     }
 
     (*size) = totalBytes;
@@ -426,7 +307,7 @@ void Client::CloseConnection(void) {
 
 int Client::CreateSocket(char *host, short port) {
     sprintf(_host, "%s", host);
-    _port = SERVER_TCP_PORT;
+    _port = port;
 
     // Create the socket
     if ((_socket = socket(AF_INET, SOCK_STREAM, 0)) == -1)
@@ -435,4 +316,40 @@ int Client::CreateSocket(char *host, short port) {
         return SOCKETERROR;
     }
     return SUCCESS;
+}
+
+int Client::SetUserName(void) {
+    char sbuf[BUFLEN] = {'\0'};
+    char rbuf[20];
+    size_t size = 0;
+    size_t bytes = 0;
+
+    std::cout << "What is your username:";
+    fgets (sbuf, BUFLEN - 1, stdin);
+    size = strlen(sbuf);
+
+
+    printf("Length:%d\n", strlen(sbuf));
+    sbuf[size - 1] = '\0';
+    sbuf[size] = EOT;
+
+    // Transmit data through the socket
+    if(send (_socket, sbuf, size + 1, 0) == -1)
+    {
+        return SOCKETERROR;
+    }
+
+    if(recv (_socket, rbuf, 20, 0) == -1)
+    {
+        return SOCKETERROR;
+    }
+
+    if(rbuf[0] != EOT)
+    {
+        return SOCKETERROR;
+    }
+
+    sprintf(_username, "%s", sbuf); //EOT will not be inserted
+
+    return 0;
 }

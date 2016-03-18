@@ -37,6 +37,7 @@ public:
     int CreateReadThread(void);
     static int HandleIncomingData(char* data, size_t datasize);
     void CloseConnection(void);
+    int SetUserName(void);
 
 private:
     short _port;
@@ -44,6 +45,7 @@ private:
     struct hostent *_hp;
     struct sockaddr_in _server;
     char _host[20];
+    char _username[BUFLEN];
     pthread_t _readThread;
 
 };

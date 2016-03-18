@@ -91,21 +91,18 @@ int Server::WriteToAllClients(char* data, size_t datasize, int client)
 		printf("[socket:%d]\n", _client[i]);
 		if (_client[i] < 0)
             continue;
-		else if(_client[i] == client)
+		/*else if(_client[i] == client)
 		{
             //Send a single EOT
 			send(_client[i], ack, 1, 0);	 // echo to client that the message was uploaded.
-		}
-		else{
+		}*/
+		else
+        {
 			printf("Sent:[%s] Size:[%lu] Client:[%d]\n", data, datasize, _client[i]);
 
 			//Ignore any errors when failing to write to a client.
 			send(_client[i], data, datasize, 0);	 // echo to client
 		}
-
-
-
-
 	}
 
     return SUCCESS;
@@ -115,9 +112,9 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 {
 	char 	buf[BUFLEN];	    //Container for incoming message.
 	char 	*bp = buf;		    //Pointer to the receiving buffer.
-	size_t	bytes_to_read;	    //Ensures that the buffer will not overflow
-    size_t  total_bytes_read;   //Running total of the bytes received.
-    size_t n;                  //Keeps track of the incoming bytes.
+	size_t	bytes_to_read = 0;	    //Ensures that the buffer will not overflow
+    size_t  total_bytes_read = 0;   //Running total of the bytes received.
+    size_t n = 0;                  //Keeps track of the incoming bytes.
 
 
 	/*
@@ -127,14 +124,20 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 	bytes_to_read = BUFLEN;
 
 	//Keep reading until you reach an EOT at the end of the packet
-	while ((n = read(client_sd, bp, bytes_to_read)) > 0)
+	while ((n = recv(client_sd, bp, bytes_to_read, 0)) > 0)
 	{
-		bp += n;
-		bytes_to_read -= n;
-		total_bytes_read += n;
+        total_bytes_read += n;
 
-        if((bp-1)[0] == EOT)
+		if(buf[total_bytes_read-1] == EOT)
+        {
+            std::cout << "Got out " << total_bytes_read << std::endl;
+            buf[total_bytes_read-1] = '\0';
+            total_bytes_read--;
             break;
+        }
+
+        bp += n;
+		bytes_to_read -= n;
 	}
 
 	if(total_bytes_read == 0) //The client has disconnected.
@@ -142,9 +145,12 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 		printf(" Remote Address:  %s closed connection\n", inet_ntoa(_client_addr.sin_addr));
 		CloseClient(client_sd, index);
 	}
-	else if(n == 0)	//If all the data has been read.
+	else if(total_bytes_read > 0)	//If all the data has been read.
 	{
-		WriteToAllClients(buf, total_bytes_read, client_sd);
+        std::cout << "Total Before:" << total_bytes_read  << " msg: " << buf << std::endl;
+        AppendUserNameToMessage(client_sd, buf, &total_bytes_read);
+        std::cout << "Total After:" << total_bytes_read << std::endl;
+        WriteToAllClients(buf, total_bytes_read, client_sd);
 	}
 	else if(n == -1)
 	{
@@ -222,6 +228,10 @@ int Server::AcceptNewConnection()
 {
 	int new_sd = 0;
     int i;
+    size_t bytes;
+    char buf[BUFLEN] = {'\0'};
+    char eot[1];
+
 	socklen_t client_len = sizeof(_client_addr);
 
 	if ((new_sd = accept(_listen_sd, (struct sockaddr *) &_client_addr, &client_len)) == -1)
@@ -232,7 +242,23 @@ int Server::AcceptNewConnection()
 
 	printf(" Remote Address:  %s\n", inet_ntoa(_client_addr.sin_addr));
 
-	for (i = 0; i < FD_SETSIZE; i++)
+    if ((bytes = recv(new_sd, buf, BUFLEN, 0)) == -1 && buf[bytes-1] == EOT) // Get the client's username.
+    {
+        printf("Unable to receive client's username.\n");
+        return SOCKETERROR;
+    }
+
+    eot[0] = EOT;
+
+    if (send(new_sd, eot, 1, 0) == -1)
+    {
+        printf("Unable to acknowledge client's username.\n");
+        return SOCKETERROR;
+    }
+
+    AddUserToConnections(buf, new_sd);
+
+    for (i = 0; i < FD_SETSIZE; i++)
 	{
 		if (_client[i] < 0)
 		{
@@ -325,134 +351,34 @@ int main (int argc, char **argv)
 
     delete svr;
     return 0;
+}
 
+void Server::AppendUserNameToMessage(int client, char *msg, size_t* msgSize)
+{
+    std::string newMsg;
+    char* tempMsg = (char*) malloc(*msgSize * sizeof(char));
+    memcpy(tempMsg, msg, *msgSize);
+    std::string temp(tempMsg);
 
-
-    /*int i, nready, arg;
-    int new_sd, sockfd;
-    size_t bytes_to_read, total_bytes_read;
-
-    socklen_t client_len;
-    struct sockaddr_in client_addr;
-    char *bp, buf[BUFLEN];
-    ssize_t n;
-    fd_set rset;
-
-    switch(argc)
-    {
-        case 1:
-            port = SERVER_TCP_PORT;	// Use the default port
-            break;
-        case 2:
-            port = atoi(argv[1]);	// Get user specified port
-            break;
-        default:
-            fprintf(stderr, "Usage: %s [port]\n", argv[0]);
-            exit(1);
+    std::map<int, std::string>::iterator it = _clientUsernameMap.find(client);
+    if(it == _clientUsernameMap.end()) {
+        newMsg = "Anonymous Hacker: " + temp;
+    } else {
+        newMsg = it->second + ": " + temp;
     }
 
-    // Create a stream socket
-    if ((listen_sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-        SystemFatal("Cannot Create Socket!");
+    size_t size = strlen(newMsg.c_str());
+    memcpy(msg, newMsg.c_str(), size);
 
-    // set SO_REUSEADDR so port can be resused imemediately after exit, i.e., after CTRL-c
-    arg = 1;
-    if (setsockopt (listen_sd, SOL_SOCKET, SO_REUSEADDR, &arg, sizeof(arg)) == -1)
-        SystemFatal("setsockopt");
+    msg[size] = '\0';
+    msg[size+1] = EOT;
+    *msgSize = size + 2;
+    free(tempMsg);
+}
 
-    // Bind an address to the socket
-    bzero((char *)&server, sizeof(struct sockaddr_in));
-    server.sin_family = AF_INET;
-    server.sin_port = htons(port);
-    server.sin_addr.s_addr = htonl(INADDR_ANY); // Accept connections from any client
-
-    if (bind(listen_sd, (struct sockaddr *)&server, sizeof(server)) == -1)
-        SystemFatal("bind error");
-
-    // Listen for connections
-    // queue up to LISTENQ connect requests
-    listen(listen_sd, LISTENQ);
-
-    maxfd	= listen_sd;	// initialize
-    maxi	= -1;		// index into client[] array
-
-    for (i = 0; i < FD_SETSIZE; i++)
-        client[i] = -1;             // -1 indicates available entry
-    FD_ZERO(&allset);
-    FD_SET(listen_sd, &allset);
-
-
-    while (true)
-    {
-        rset = allset;               // structure assignment
-        nready = select(maxfd + 1, &rset, NULL, NULL, NULL);
-
-        if (FD_ISSET(listen_sd, &rset)) // new client connection
-        {
-            client_len = sizeof(client_addr);
-            if ((new_sd = accept(listen_sd, (struct sockaddr *) &client_addr, &client_len)) == -1)
-                SystemFatal("accept error");
-
-            printf(" Remote Address:  %s\n", inet_ntoa(client_addr.sin_addr));
-
-            for (i = 0; i < FD_SETSIZE; i++)
-                if (client[i] < 0)
-                {
-                    client[i] = new_sd;	// save descriptor
-                    break;
-                }
-            if (i == FD_SETSIZE)
-            {
-                printf ("Too many clients\n");
-                exit(1);
-            }
-
-            FD_SET (new_sd, &allset);     // add new descriptor to set
-            if (new_sd > maxfd)
-                maxfd = new_sd;	// for select
-
-            if (i > maxi)
-                maxi = i;	// new max index in client[] array
-
-            if (--nready <= 0)
-                continue;	// no more readable descriptors
-        }
-
-        for (i = 0; i <= maxi; i++)	// check all clients for data
-        {
-            if ((sockfd = client[i]) < 0)
-                continue;
-
-            if (FD_ISSET(sockfd, &rset))
-            {
-                bp = buf;
-                bytes_to_read = BUFLEN;
-                while ((n = read(sockfd, bp, bytes_to_read)) > 0)
-                {
-                    bp += n;
-                    bytes_to_read -= n;
-                    total_bytes_read += n;
-                }
-
-                if(total_bytes_read == 0) //The client has disconnected.
-                {
-                    printf(" Remote Address:  %s closed connection\n", inet_ntoa(client_addr.sin_addr));
-                    close(sockfd);
-                    FD_CLR(sockfd, &allset);
-                    client[i] = -1;
-                    --maxi;
-                }
-                else if(n == 0)
-                {
-                    WriteToAllClients(buf, total_bytes_read, _client[i], maxi);
-                    total_bytes_read = 0;
-                }
-
-
-                if (--nready <= 0)
-                    break;        // no more readable descriptors
-            }
-        }
-    }*/
-    return(0);
+void Server::AddUserToConnections(char *name, int socket)
+{
+    std::string temp(name);
+    _clientUsernameMap.insert(std::make_pair(socket, temp));
+    std::cout << "Added: " << temp << " to the map." << std::endl;
 }

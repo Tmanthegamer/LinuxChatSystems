@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <string>
 #include <vector>
+#include <map>
 
 
 /*
@@ -47,8 +48,10 @@ public:
     int BindSocketAndListen();
     int WriteToAllClients(char* data, size_t datasize, int client);
     int ReceivePacketFromClient(int client_sd, int index);
+    void AppendUserNameToMessage(int client, char* msg, size_t* msgSize);
     int SelectIncomingData();
     int AcceptNewConnection();
+    void AddUserToConnections(char* name, int socket);
     void SystemFatal(const char*);
     int CloseClient(int client_sd, int index);
 	void SetPort(int _port);
@@ -60,6 +63,7 @@ private:
 private:
 	int _port;                      //Current port to listen
     int _maxfd;                     //Maximum amount of file descriptors
+    std::map<int, std::string>      _clientUsernameMap; //Clients tracked by their username
     std::vector<int> _client;       //Vector of client sockets
 
     struct sockaddr_in _server;     //Server socket address
