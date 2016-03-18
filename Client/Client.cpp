@@ -1,39 +1,83 @@
-//
-// Created by tyler on 29/02/16.
-//
 
 #include "Client.h"
-/*---------------------------------------------------------------------------------------
---	SOURCE FILE:		tcp_clnt.c - A simple TCP client program.
+int Client::_socket = -1; // Static socket used to read data from a Server.
+
+/*
+---------------------------------------------------------------------------------------
+--  SOURCE FILE:    Client.cpp - Chat Client 
 --
---	PROGRAM:		tclnt.exe
+--  PROGRAM:        Client.exe
 --
---	FUNCTIONS:		Berkeley Socket API
+--  FUNCTIONS:      int InitClient(char* host = "127.0.0.1", 
+--                                 short port  = SERVER_TCP_PORT);
+--                  int CreateSocket(char*host, short port);
+--                  int SetSockOpt(void);
+--                  int SetHostAddress(void);
+--                  int Connect(void);
+--                  int SendAndReceiveData(void);
+--                  int SendData(char* data, size_t datasize);
+--                  static void* GetData(void* arg);
+--                  static int ReceiveData(char* data, size_t* size);
+--                  int CreateReadThread(void);
+--                  static int HandleIncomingData(char* data, size_t datasize);
+--                  void CloseConnection(void);
+--                  int CheckError(int error);
+--                  int SetUserName(void);
 --
---	DATE:			February 2, 2008
+--  DATE:           Feb 29, 2016
 --
---	REVISIONS:		(Date and Description)
---				January 2005
---				Modified the read loop to use fgets.
---				While loop is based on the buffer length
+--  REVISIONS:      March 13, 2016 (Tyler Trepanier)
+--                      Redesign every file to be a C++ class.
+--                  March 17, 2016 (Tyler Trepanier)
+--                      Added in usernames to all client's messages.
 --
+--  DESIGNERS:      Tyler Trepanier
 --
---	DESIGNERS:		Aman Abdulla
+--  PROGRAMMERS:    Tyler Trepanier
 --
---	PROGRAMMERS:		Aman Abdulla
---
---	NOTES:
---	The program will establish a TCP connection to a user specifed server.
--- The server can be specified using a fully qualified domain name or and
---	IP address. After the connection has been established the user will be
--- prompted for date. The date string is then sent to the server and the
--- response (echo) back from the server is displayed.
----------------------------------------------------------------------------------------*/
+--  NOTES:
+--  This program entity connects to an operating server where it has the ability to
+--  communication with other similar instances of this Client. The Client will be
+--  able to see the other clients in the chat room and any messages that is sent
+--  within the chat room.
+---------------------------------------------------------------------------------------
+*/
 #include <netdb.h>
 
-#define SERVER_TCP_PORT		7000    // Default port
-#define BUFLEN			    255     // Buffer length
-
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Main
+--
+--  DATE:           Feb 29, 2016
+--
+--  REVISED:        March 13, 2016 (Tyler Trepanier)
+--                      Redesign every file to be a C++ class.
+--                  March 17, 2016 (Tyler Trepanier)
+--                      Added in usernames to all client's messages.                       
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int main (int argc, char **argv)
+--
+--  PARAMETERS:     int argc
+--                      Number of arguments run from command line
+--                  char **argv
+--                      Arguments included from command line
+--
+--  RETURNS:        int
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns BADHOST (10) when the client was unable to 
+--                          connect to the host indicated from comand line.
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          a TCP socket
+--                      -Returns BUFFEROVERFLOW (30) when a message received a
+--                          bufferflow error
+--
+--  NOTES:
+--  Main entry into the program. Simply creates an instance of a client,
+--  initializes the client and begins the client program.
+---------------------------------------------------------------------------------*/
 int main (int argc, char **argv)
 {
     Client *clnt = new Client();
@@ -65,8 +109,46 @@ int main (int argc, char **argv)
 
 }
 
-int Client::_socket = -1;
-
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Initialize Client
+--
+--  DATE:           March 13, 2016 
+--
+--  REVISED:        March 17, 2016 (Tyler Trepanier)
+--                      Added in usernames to all client's messages.                       
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::InitClient(char* host, 
+--                                         short port)
+--
+--  PARAMETERS:     char* host
+--                      String indicating the address of the server.
+--                  short port
+--                      Requested port to use for the server indicated above.
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns BADHOST (10) when the client was unable to 
+--                          connect to the host indicated from comand line.
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          a TCP socket
+--                      -Returns BUFFEROVERFLOW (30) when a message received a
+--                          bufferflow error
+--
+--  NOTES:
+--  Initializes a client required resources before allowing them to enter the
+--  server's chatroom. Uses standard TCP protocol for creating a socket, getting
+--  a server's address and connecting to a server. After a successful connection,
+--  the user is required to enter in their username before they are allowed to
+--  converse with their peers.
+--
+--  Error can resolve to many types and it is checked inside of the main
+--  function to determine the severity of the error. All socket errors will
+--  terminate the program meanwhile buffer overflows can be ignored.
+---------------------------------------------------------------------------------*/
 int Client::InitClient(char* host, short port)
 {
     int error = 0;
@@ -89,6 +171,30 @@ int Client::InitClient(char* host, short port)
     return SUCCESS;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Set Socket Operation
+--
+--  DATE:           March 13, 2016 
+--
+--  REVISED:        (None)                      
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::SetSockOpt(void)
+--
+--  PARAMETERS:     void
+--                      Takes in no parameters
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          setting the socket operation
+--
+--  NOTES:
+--  Enables the computer to reuse the socket for other connections.
+---------------------------------------------------------------------------------*/
 int Client::SetSockOpt(void)
 {
     int enable = 1;
@@ -100,6 +206,31 @@ int Client::SetSockOpt(void)
     return SUCCESS;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Connect to Server
+--
+--  DATE:           March 13, 2016 
+--
+--  REVISED:        (None)                      
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::Connect(void)
+--
+--  PARAMETERS:     void
+--                      Takes in no parameters
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          setting the socket operation
+--
+--  NOTES:
+--  Attempts to connect a client to an open server. All sucessful connections
+--  are made public via the console printing out the server's IP Address.
+---------------------------------------------------------------------------------*/
 int Client::Connect(void)
 {
     char** pptr;
@@ -121,11 +252,52 @@ int Client::Connect(void)
     return SUCCESS;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Continously Send and Receive Data
+--
+--  DATE:           Feb 29, 2016 
+--
+--  REVISED:        March 13, 2016 (Tyler Trepanier)
+--                      Redesign every file to be a C++ class.
+--                  March 17, 2016 (Tyler Trepanier)
+--                      Added in usernames to all client's messages.
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::SendAndReceiveData(void)
+--
+--  PARAMETERS:     void
+--                      Takes in no parameters
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          setting the socket operation
+--
+--  NOTES:
+--  After a successful connection has been established with a server and a
+--  the user has their own proper username, this function occurs. First the read
+--  thread is created which will continously read for data until an error occurs.
+--  Afterwards, there will be a continuous loop for reading user input.
+--
+--  When the user is finished inputting their message, it will be sent over TCP
+--  to the server where it will be sent to the server for it to handle. In
+--  addition, there are a maximum of 5 socket errors allowed until the program
+--  will quit.
+--
+--  All messages have a max size of 255 characters and the final message will be
+--  appended with an EOT indicating the last piece of the message. The server
+--  will knowingly stop at the EOT so this will allow for variable length
+--  packets.
+---------------------------------------------------------------------------------*/
 int Client::SendAndReceiveData(void)
 {
     char sbuf[MAX_BUFFER] = {'\0'}; //Send buffer which will store the message.
     int errorCount = 0;             //Allows 5 failures before terminating the client.
-    size_t bytes_to_send;
+    int error[5] = {0};
+    size_t bytes_to_send = 0;
 
     CreateReadThread();
 
@@ -134,27 +306,58 @@ int Client::SendAndReceiveData(void)
         std::cout << "Transmit: " << std::endl;
         fgets (sbuf, MAX_BUFFER-1, stdin);
 
-
-
         bytes_to_send = strlen(sbuf) + 1;
         printf("%u\n", bytes_to_send);
         sbuf[bytes_to_send - 2] = '\0';
         sbuf[bytes_to_send - 1] = EOT;
 
         // Transmit data through the socket
-        if(SendData(sbuf, bytes_to_send))
+        if((error[errorCount] = SendData(sbuf, bytes_to_send))
         {
             std::cerr << "Client unable to send data at this time." << std::endl;
             errorCount++;
         }
+        else
+        {
+            errorCount = 0;
+        }
         printf("errorCount:%d\n", errorCount);
         fflush(stdout);
-
     }
 
-    return SUCCESS;
+    return error[0]; // return the original error only
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Send Data
+--
+--  DATE:           Feb 29, 2016 
+--
+--  REVISED:        March 13, 2016 (Tyler Trepanier)
+--                      Redesign every file to be a C++ class.
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::SendData(char* data, 
+--                                       size_t datasize)
+--
+--  PARAMETERS:     char* data
+--                      Data to be sent over TCP to the pre-connected server
+--                  size_t datasize
+--                      Size of the data to be sent.
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          setting the socket operation
+--
+--  NOTES:
+--  Sends the contents of a data to a pre-connected server. If the contents of
+--  are unable to be sent all at once, it will continously attempt to send until
+--  all contents have been sent or there is an error.
+---------------------------------------------------------------------------------*/
 int Client::SendData(char* data, size_t datasize)
 {
     bool sendComplete = false;
@@ -180,7 +383,49 @@ int Client::SendData(char* data, size_t datasize)
     return SUCCESS;
 }
 
-//Size is used for determining how much data to send or receive depending on purpose
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Receive Data
+--
+--  DATE:           Feb 29, 2016 
+--
+--  REVISED:        March 13, 2016 (Tyler Trepanier)
+--                      Redesign every file to be a C++ class.
+--                  March 17, 2016 (Tyler Trepanier)
+--                      If an incoming message belongs from an external client, 
+--                      it will stop reading.
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::ReceiveData(char* data, 
+--                                          size_t* size)
+--
+--  PARAMETERS:     char* data
+--                      Data to be sent over TCP to the pre-connected server
+--                  size_t* size
+--                      Size of the data being received.
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          setting the socket operation
+--                      -Returns BUFFEROVERFLOW (30) when there is too much
+--                          data coming in.
+--
+--  NOTES:
+--  Receives the contents of a data from pre-connected server. If the contents
+--  are unable to be received all at once, it will continously attempt to send
+--  until all contents have been received or there is an error.
+--
+--  There are three conditions that will stop a client from receiving data:
+--      1) The server is indicating that this client has successfully broadcasted
+--         their message.
+--      2) The server has sent a message from another client and is relaying the
+--         message to this client.
+--      3) There is an overflow of data and the client will return an error
+--         indicating that there is too much garbage data being received.
+---------------------------------------------------------------------------------*/
 int Client::ReceiveData(char* data, size_t* size)
 {
     char recvBuffer[MAX_BUFFER] = {'\0'};
@@ -202,7 +447,12 @@ int Client::ReceiveData(char* data, size_t* size)
             break;
         }
 
-        if(maximum_bytes <= 0)
+        if(maximum_bytes == 0)
+        {
+            return SOCKETERROR;
+        }
+
+        if(maximum_bytes < 0)
         {
             return BUFFEROVERFLOW;
         }
@@ -221,11 +471,62 @@ int Client::ReceiveData(char* data, size_t* size)
     return SUCCESS;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Receive Data
+--
+--  DATE:           March 13, 2016 (Tyler Trepanier)
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::CreateReadThread(void)
+--
+--  PARAMETERS:     void
+--                      There are no function arguments.
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns -1 on thread creation failure.
+--
+--  NOTES:
+--  Creates a thread that will continously receive data from the server.
+---------------------------------------------------------------------------------*/
 int Client::CreateReadThread(void)
 {
     return pthread_create(&_readThread, NULL, &GetData, (void*)0);
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Receive Data
+--
+--  DATE:           Feb 29, 2016 
+--
+--  REVISED:        March 13, 2016 (Tyler Trepanier)
+--                      Redesign every file to be a C++ class.
+--                  March 17, 2016 (Tyler Trepanier)
+--                      If an incoming message belongs from an external client, 
+--                      it will stop reading.
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::SetHostAddress(void)
+--
+--  PARAMETERS:     void
+--                      There are no function arguments.
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns BADHOST (10) when the client is unable to
+--                          connect to the server specified.
+--
+--  NOTES:
+--  Using the already specified port and host, the client will attempt to
+--  connect to the server using these credentials. Failure to get a host will
+--  result in a BADHOST error.
+---------------------------------------------------------------------------------*/
 int Client::SetHostAddress(void)
 {
     bzero((char *)&_server, sizeof(struct sockaddr_in));
@@ -241,6 +542,32 @@ int Client::SetHostAddress(void)
     return SUCCESS;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Get Data
+--
+--  DATE:           Feb 29, 2016 
+--
+--  REVISED:        March 13, 2016 (Tyler Trepanier)
+--                      Redesign every file to be a C++ class.
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      void *Client::GetData(void *arg)
+--
+--  PARAMETERS:     void *arg
+--                      Unused function arguments.
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns BUFFEROVERFLOW (30) when there is too much
+--                          data coming in from the server.
+--
+--  NOTES:
+--  This is a thread function that receives data from the server and handles the
+--  output after a successful read.
+---------------------------------------------------------------------------------*/
 void *Client::GetData(void *arg) {
     char recvBuffer[MAX_BUFFER] = {'\0'};
     size_t datasize = 0;
@@ -274,6 +601,31 @@ void *Client::GetData(void *arg) {
     return 0;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Get Data
+--
+--  DATE:           March 13, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::HandleIncomingData(char *data, 
+--                                                 size_t datasize)
+--
+--  PARAMETERS:     char *data, 
+--                      Data received from the server
+--                  size_t datasize
+--                      Size of the data.
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--
+--  NOTES:
+--  Placeholder function where it will perform GUI functions.
+---------------------------------------------------------------------------------*/
 int Client::HandleIncomingData(char *data, size_t datasize) {
 
     /*
@@ -284,7 +636,30 @@ int Client::HandleIncomingData(char *data, size_t datasize) {
     return SUCCESS;
 }
 
-void Client::CloseConnection(void) {
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Close Client Connection
+--
+--  DATE:           March 13, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      void Client::CloseConnection(void) 
+--
+--  PARAMETERS:     void
+--                      No parameters
+--
+--  RETURNS:        void
+--                      No return value
+--
+--  NOTES:
+--  Closes the TCP and frees all used resources before program termination.
+---------------------------------------------------------------------------------*/
+void Client::CloseConnection(void) 
+{
     close (_socket);
 }
 

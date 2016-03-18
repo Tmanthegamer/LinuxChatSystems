@@ -10,7 +10,7 @@
 #include <pthread.h>
 #include "../PacketUtilities.h"
 
-#define SERVER_TCP_PORT		7000    // Default port
+#define SERVER_TCP_PORT		9756    // Default port
 #define BUFLEN			    255     // Buffer length
 #define MAX_BUFFER          2048    // Maximum message size allowed.
 #define BUFFEROVERFLOW      30      // Buffer overflow error
