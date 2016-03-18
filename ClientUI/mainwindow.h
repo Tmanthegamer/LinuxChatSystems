@@ -15,6 +15,14 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+    QString username;
+
+private slots:
+
+    void on_pushButton_chat_clicked();
+
+    void on_pushButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 };
