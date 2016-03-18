@@ -1,28 +1,37 @@
-
-#include "Client.h"
-int Client::_socket = -1; // Static socket used to read data from a Server.
-
-/*
----------------------------------------------------------------------------------------
+/*-------------------------------------------------------------------------------------
 --  SOURCE FILE:    Client.cpp - Chat Client 
 --
 --  PROGRAM:        Client.exe
 --
 --  FUNCTIONS:      int InitClient(char* host = "127.0.0.1", 
 --                                 short port  = SERVER_TCP_PORT);
+--                  
 --                  int CreateSocket(char*host, short port);
+--                  
 --                  int SetSockOpt(void);
+--                  
 --                  int SetHostAddress(void);
+--                  
 --                  int Connect(void);
+--                  
 --                  int SendAndReceiveData(void);
+--                  
 --                  int SendData(char* data, size_t datasize);
+--                  
 --                  static void* GetData(void* arg);
+--                  
 --                  static int ReceiveData(char* data, size_t* size);
+--                  
 --                  int CreateReadThread(void);
+--                  
 --                  static int HandleIncomingData(char* data, size_t datasize);
+--                  
 --                  void CloseConnection(void);
+--                  
 --                  int CheckError(int error);
+--                  
 --                  int SetUserName(void);
+--
 --
 --  DATE:           Feb 29, 2016
 --
@@ -30,6 +39,8 @@ int Client::_socket = -1; // Static socket used to read data from a Server.
 --                      Redesign every file to be a C++ class.
 --                  March 17, 2016 (Tyler Trepanier)
 --                      Added in usernames to all client's messages.
+--                  March 18, 2016 (Tyler Trepanier)
+--                      Refactoring code removing unnecessary variables.
 --
 --  DESIGNERS:      Tyler Trepanier
 --
@@ -40,11 +51,12 @@ int Client::_socket = -1; // Static socket used to read data from a Server.
 --  communication with other similar instances of this Client. The Client will be
 --  able to see the other clients in the chat room and any messages that is sent
 --  within the chat room.
----------------------------------------------------------------------------------------
-*/
-#include <netdb.h>
+-------------------------------------------------------------------------------------*/
 
-/*---------------------------------------------------------------------------------
+#include "Client.h"
+int Client::_socket = -1; // Static socket used to read data from a Server.
+
+/*-------------------------------------------------------------------------------------
 --  FUNCTION:       Main
 --
 --  DATE:           Feb 29, 2016
@@ -77,7 +89,7 @@ int Client::_socket = -1; // Static socket used to read data from a Server.
 --  NOTES:
 --  Main entry into the program. Simply creates an instance of a client,
 --  initializes the client and begins the client program.
----------------------------------------------------------------------------------*/
+-------------------------------------------------------------------------------------*/
 int main (int argc, char **argv)
 {
     Client *clnt = new Client();
@@ -189,7 +201,7 @@ int Client::InitClient(char* host, short port)
 --
 --  RETURNS:        int error
 --                      -Returns 0 when there is no error with Program execution
---                      -Returns SOCKETERROR (20) when there is an issue with 
+--                      -Returns SOCKOPTERROR (40) when there is an issue with 
 --                          setting the socket operation
 --
 --  NOTES:
@@ -201,7 +213,7 @@ int Client::SetSockOpt(void)
     if(setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
     {
         std::cerr << "setsockopt(SO_REUSEADDR) failed.\n" << std::endl;
-        return SOCKETERROR;
+        return SOCKOPTERROR;
     }
     return SUCCESS;
 }
@@ -449,12 +461,12 @@ int Client::ReceiveData(char* data, size_t* size)
 
         if(maximum_bytes == 0)
         {
-            return SOCKETERROR;
+            return BUFFEROVERFLOW;
         }
 
         if(maximum_bytes < 0)
         {
-            return BUFFEROVERFLOW;
+            return SOCKETERROR;
         }
 
         recvPointer += bytesRecv;
@@ -472,7 +484,7 @@ int Client::ReceiveData(char* data, size_t* size)
 }
 
 /*---------------------------------------------------------------------------------
---  FUNCTION:       Receive Data
+--  FUNCTION:       Create Read Thread
 --
 --  DATE:           March 13, 2016 (Tyler Trepanier)
 --
@@ -498,7 +510,7 @@ int Client::CreateReadThread(void)
 }
 
 /*---------------------------------------------------------------------------------
---  FUNCTION:       Receive Data
+--  FUNCTION:       Set Host Address
 --
 --  DATE:           Feb 29, 2016 
 --
@@ -604,7 +616,7 @@ void *Client::GetData(void *arg) {
 }
 
 /*---------------------------------------------------------------------------------
---  FUNCTION:       Get Data
+--  FUNCTION:       Handle Incoming Data
 --
 --  DATE:           March 13, 2016
 --
@@ -794,6 +806,8 @@ int Client::SetUserName(void) {
 --                          a TCP socket
 --                      -Returns BUFFEROVERFLOW (30) when a message received a
 --                          bufferflow error
+--                      -Returns SOCKOPTERROR (40) when there was an error
+--                          setting the socket operation.    
 --
 --  NOTES:
 --  Error checking function which displays output of the type and reason for the
@@ -811,6 +825,9 @@ int Client::CheckError(int error)
             break;
         case BUFFEROVERFLOW:
             std::cerr << "Buffer overflow" << std::endl;
+            return error;
+        case SOCKOPTERROR:
+            std::cerr << "Set socket operation" << std::endl;
             return error;
     }
     return error;
