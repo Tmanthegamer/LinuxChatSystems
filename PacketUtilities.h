@@ -1,9 +1,28 @@
-//
-// Created by tyler on 29/02/16.
-//
+#ifndef CHAT_PACKETUTILITIES_H
+#define CHAT_PACKETUTILITIES_H
 
-#ifndef MESSAGEQUEUE_PACKETUTILITIES_H
-#define MESSAGEQUEUE_PACKETUTILITIES_H
+/*-------------------------------------------------------------------------------------
+--  SOURCE FILE:    PacketUtilties.h - Utility file
+--
+--  DATE:           Feb 29, 2016
+--
+--  REVISIONS:      March 13, 2016 (Tyler Trepanier)
+--                      Redesign every file to be a C++ class.
+--                  March 17, 2016 (Tyler Trepanier)
+--                      Added in username functionality to the Client and the
+--                      server.
+--                  March 18, 2016 (Tyler Trepanier)
+--                      Removed all functions, repurposed as a generic include
+--						file used by client and server.
+--
+--  DESIGNERS:      Tyler Trepanier
+--
+--  PROGRAMMERS:    Tyler Trepanier
+--
+--  NOTES:
+--  This file serves to provide an easy interface for the Chat Server and the Chat
+--	Client holding common definitions and includes
+-------------------------------------------------------------------------------------*/
 
 #include <string.h>
 #include <string>
@@ -34,17 +53,4 @@
 #define BADHOST             10      // Unable to resolve host error
 #define SUCCESS             0       // Success
 
-int PacketizeData(char* data, int datasize, int packetsize);
-int PreparePacketsToSend(char** packetArray, int totalPackets, char* data, int datasize, int packetsize);
-int GetTotalNumberOfPackets(int datasize, int packetsize);
-int Fatal(char* msg);
-
-//Unfinished method, needs more arguments for TCP sending
-int SendPacketsToAllClients(int queue, char** packetArray, int totalPackets);
-
-int PreparePacketsToSend(char** packetArray, int totalPackets, char* data, int datasize);
-int FreeArray(char*** array, int size);
-int MallocArray(char*** array, int numElements, int elementSize);
-
-
-#endif //MESSAGEQUEUE_PACKETUTILITIES_H
+#endif //CHAT_PACKETUTILITIES_H

@@ -66,9 +66,9 @@ int Client::_socket = -1; // Static socket used to read data from a Server.
 --                  March 17, 2016 (Tyler Trepanier)
 --                      Added in usernames to all client's messages.                       
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int main (int argc, char **argv)
 --
@@ -129,9 +129,9 @@ int main (int argc, char **argv)
 --  REVISED:        March 17, 2016 (Tyler Trepanier)
 --                      Added in usernames to all client's messages.                       
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::InitClient(char* host, 
 --                                         short port)
@@ -190,9 +190,9 @@ int Client::InitClient(char* host, short port)
 --
 --  REVISED:        (None)                      
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::SetSockOpt(void)
 --
@@ -225,9 +225,9 @@ int Client::SetSockOpt(void)
 --
 --  REVISED:        (None)                      
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::Connect(void)
 --
@@ -274,9 +274,9 @@ int Client::Connect(void)
 --                  March 17, 2016 (Tyler Trepanier)
 --                      Added in usernames to all client's messages.
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::SendAndReceiveData(void)
 --
@@ -348,9 +348,9 @@ int Client::SendAndReceiveData(void)
 --  REVISED:        March 13, 2016 (Tyler Trepanier)
 --                      Redesign every file to be a C++ class.
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::SendData(char* data, 
 --                                       size_t datasize)
@@ -406,9 +406,9 @@ int Client::SendData(char* data, size_t datasize)
 --                      If an incoming message belongs from an external client, 
 --                      it will stop reading.
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::ReceiveData(char* data, 
 --                                          size_t* size)
@@ -488,9 +488,9 @@ int Client::ReceiveData(char* data, size_t* size)
 --
 --  DATE:           March 13, 2016 (Tyler Trepanier)
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::CreateReadThread(void)
 --
@@ -520,9 +520,9 @@ int Client::CreateReadThread(void)
 --                      If an incoming message belongs from an external client, 
 --                      it will stop reading.
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::SetHostAddress(void)
 --
@@ -562,9 +562,9 @@ int Client::SetHostAddress(void)
 --  REVISED:        March 13, 2016 (Tyler Trepanier)
 --                      Redesign every file to be a C++ class.
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      void *Client::GetData(void *arg)
 --
@@ -622,9 +622,9 @@ void *Client::GetData(void *arg) {
 --
 --  REVISED:        (None)
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::HandleIncomingData(char *data, 
 --                                                 size_t datasize)
@@ -657,9 +657,9 @@ int Client::HandleIncomingData(char *data, size_t datasize) {
 --
 --  REVISED:        (None)
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      void Client::CloseConnection(void) 
 --
@@ -670,7 +670,7 @@ int Client::HandleIncomingData(char *data, size_t datasize) {
 --                      No return value
 --
 --  NOTES:
---  Closes the TCP and frees all used resources before program termination.
+--  Closes the TCP socket and frees all used resources before program termination.
 ---------------------------------------------------------------------------------*/
 void Client::CloseConnection(void) 
 {
@@ -684,9 +684,9 @@ void Client::CloseConnection(void)
 --
 --  REVISED:        (None)
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::CreateSocket(char *host, 
 --                                           short port)
@@ -726,9 +726,9 @@ int Client::CreateSocket(char *host, short port) {
 --
 --  REVISED:        (None)
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::SetUserName(void)
 --
@@ -789,9 +789,9 @@ int Client::SetUserName(void) {
 --
 --  REVISED:        (None)
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int Client::CheckError(int error)
 --

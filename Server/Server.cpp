@@ -545,9 +545,9 @@ int Server::AcceptNewConnection()
 {
 	int new_sd = 0;                 // New client socket.
     int i;                          // Index for iterating through _client vector
-    size_t bytes;                   
-    char buf[BUFLEN] = {'\0'};
-    char eot[1];
+    size_t bytes;                   // Bytes received from receiving
+    char buf[BUFLEN] = {'\0'};      // Receive buffer
+    char eot[1];                    // EOT character to indicate a succesful read
 
 	socklen_t client_len = sizeof(_client_addr);
 
@@ -601,11 +601,59 @@ int Server::AcceptNewConnection()
 	return SUCCESS;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       System Fatal
+--
+--  DATE:           March 13, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      void Server::SystemFatal(const char* message)
+--
+--  PARAMETERS:     const char* error
+--                      Error message to be added to the perror function
+--
+--  RETURNS:        void
+--                      No return value.
+--
+--  NOTES:
+--  Prints an error message indicating the failure.
+---------------------------------------------------------------------------------*/
 void Server::SystemFatal(const char* message)
 {
 	perror (message);
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Close Client Connection
+--
+--  DATE:           March 13, 2016
+--
+--  REVISED:        March 17, 2016 (Tyler Trepanier)
+--                      Added in username functionality to the Client and the
+--                      Server.
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      int Server::CloseClient(int client_sd, int index)
+--
+--  PARAMETERS:     int client_sd
+--                      Connected client socket to be released
+--                  int index
+--                      Index in the _client vector
+--
+--  RETURNS:        int
+--                      -Returns 0 on SUCCESS
+--
+--  NOTES:
+--  Closes the TCP socket and frees all client used resources
+---------------------------------------------------------------------------------*/
 int Server::CloseClient(int client_sd, int index)
 {
     close(client_sd);
@@ -613,13 +661,70 @@ int Server::CloseClient(int client_sd, int index)
     _client[index] = -1;
     --_maxi;
     _clientUsernameMap.erase(client_sd);
+
     return SUCCESS;
 }
 
-void Server::SetPort(int _port) {
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Set Host Port
+--
+--  DATE:           March 13, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      void Server::SetPort(int _port) 
+--
+--  PARAMETERS:     int _port
+--                      Desired operating port.
+--
+--  RETURNS:        void
+--                      No return value.
+--
+--  NOTES:
+--  Sets the server's operating port.
+---------------------------------------------------------------------------------*/
+void Server::SetPort(int _port) 
+{
     Server::_port = _port;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Append UserName To Message
+--
+--  DATE:           March 17, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      void Server::AppendUserNameToMessage(int client, 
+--                                                       char *msg, 
+--                                                       size_t* msgSize)
+--
+--  PARAMETERS:     int client 
+--                      Client socket inside of the map.                                   
+--                  char *msg 
+--                      Message to be prepended.  
+--                  size_t* msgSize
+--                      Pointer to the size of the message, will be modified to
+--                      the new message size.
+--
+--  RETURNS:        void
+--                      No return value.
+--
+--  NOTES:
+--  Prepends the client's username to their message. If a client does not exist
+--  in the client username map or there is an issue retrieving their name, the
+--  name will be replaced with "Anonymous Hacker." The message will be modified
+--  and as a result, the size of message will be increased to accomodate the new
+--  size which will be broadcasted to all other clients.
+---------------------------------------------------------------------------------*/
 void Server::AppendUserNameToMessage(int client, char *msg, size_t* msgSize)
 {
     std::string newMsg;
@@ -643,9 +748,33 @@ void Server::AppendUserNameToMessage(int client, char *msg, size_t* msgSize)
     free(tempMsg);
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Add User To Connections
+--
+--  DATE:           March 17, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      void Server::AddUserToConnections(char *name, int socket)
+--
+--  PARAMETERS:     char *name 
+--                      Desired client name.                                   
+--                  int socket
+--                      Socket used as the key in the client username map.
+--
+--  RETURNS:        void
+--                      No return value.
+--
+--  NOTES:
+--  Adds in the client username to the client username map and uses their socket
+--  as the key.
+---------------------------------------------------------------------------------*/
 void Server::AddUserToConnections(char *name, int socket)
 {
     std::string temp(name);
     _clientUsernameMap.insert(std::make_pair(socket, temp));
-    std::cout << "Added: " << temp << " to the map." << std::endl;
 }
