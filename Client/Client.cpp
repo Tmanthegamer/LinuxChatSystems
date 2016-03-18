@@ -45,40 +45,23 @@ int main (int argc, char **argv)
         sscanf(argv[2], "%u", &port);
         if(clnt->InitClient(argv[1], port) > 0)
         {
-            return 1;
+            clnt->CheckError(error);
+            return error;
         }
     }
     else if((error = clnt->InitClient()) > 0)
     {
-        switch(error)
-        {
-            case BADHOST:
-            std::cerr << "Badhost" << std::endl;
-                break;
-            case SOCKETERROR:
-                std::cerr << "Socket Error" << std::endl;
-                break;
-            case BUFFEROVERFLOW:
-                std::cerr << "Buffer overflow" << std::endl;
-                break;
-        }
+        clnt->CheckError(error);
+        return error;
     }
 
     if((error = clnt->SendAndReceiveData()) > 0)
     {
-        switch(error)
-        {
-            case BADHOST:
-                std::cerr << "Badhost" << std::endl;
-                break;
-            case SOCKETERROR:
-                std::cerr << "Socket Error" << std::endl;
-                break;
-            case BUFFEROVERFLOW:
-                std::cerr << "Buffer overflow" << std::endl;
-                break;
-        }
+        clnt->CheckError(error);
+        return error;
     }
+    clnt->CloseConnection();
+    return 0;
 
 }
 
@@ -352,4 +335,21 @@ int Client::SetUserName(void) {
     sprintf(_username, "%s", sbuf); //EOT will not be inserted
 
     return 0;
+}
+
+int Client::CheckError(int error)
+{
+    switch(error)
+    {
+        case BADHOST:
+            std::cerr << "Badhost" << std::endl;
+            break;
+        case SOCKETERROR:
+            std::cerr << "Socket Error" << std::endl;
+            break;
+        case BUFFEROVERFLOW:
+            std::cerr << "Buffer overflow" << std::endl;
+            return error;
+    }
+    return error;
 }

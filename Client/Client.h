@@ -37,6 +37,7 @@ public:
     int CreateReadThread(void);
     static int HandleIncomingData(char* data, size_t datasize);
     void CloseConnection(void);
+    int CheckError(int error);
     int SetUserName(void);
 
 private:

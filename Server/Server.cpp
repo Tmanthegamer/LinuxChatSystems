@@ -130,7 +130,6 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 
 		if(buf[total_bytes_read-1] == EOT)
         {
-            std::cout << "Got out " << total_bytes_read << std::endl;
             buf[total_bytes_read-1] = '\0';
             total_bytes_read--;
             break;
@@ -147,9 +146,7 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 	}
 	else if(total_bytes_read > 0)	//If all the data has been read.
 	{
-        std::cout << "Total Before:" << total_bytes_read  << " msg: " << buf << std::endl;
         AppendUserNameToMessage(client_sd, buf, &total_bytes_read);
-        std::cout << "Total After:" << total_bytes_read << std::endl;
         WriteToAllClients(buf, total_bytes_read, client_sd);
 	}
 	else if(n == -1)
@@ -295,6 +292,7 @@ int Server::CloseClient(int client_sd, int index)
     FD_CLR(client_sd, &_all_set);
     _client[index] = -1;
     --_maxi;
+    _clientUsernameMap.erase(client_sd);
     return SUCCESS;
 }
 
