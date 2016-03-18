@@ -561,6 +561,8 @@ int Client::SetHostAddress(void)
 --
 --  RETURNS:        int error
 --                      -Returns 0 when there is no error with Program execution
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          receiving data from the server.
 --                      -Returns BUFFEROVERFLOW (30) when there is too much
 --                          data coming in from the server.
 --
@@ -663,6 +665,35 @@ void Client::CloseConnection(void)
     close (_socket);
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Create TCP Socket
+--
+--  DATE:           March 13, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::CreateSocket(char *host, 
+--                                           short port)
+--
+--  PARAMETERS:     char *host, 
+--                      Host address of the server in char* literal string
+--                      adhering to the format of 192.168.###.###
+--                  short port
+--                      Request server communication port to use
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          creating a new TCP Socket.                      
+--
+--  NOTES:
+--  Creates a TCP socket and copies the requested host and port information to 
+--  the client instance. Failures in this function are critical to this program.
+---------------------------------------------------------------------------------*/
 int Client::CreateSocket(char *host, short port) {
     sprintf(_host, "%s", host);
     _port = port;
@@ -676,18 +707,45 @@ int Client::CreateSocket(char *host, short port) {
     return SUCCESS;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Set Client User Name
+--
+--  DATE:           March 17, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::SetUserName(void)
+--
+--  PARAMETERS:     void
+--                      No parameters required
+--
+--  RETURNS:        int error
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          sending or receiving from the socket.
+--
+--  NOTES:
+--  After an acknowledgement of a connection between the client and the server,
+--  the client sets their username and sends their requested username to the
+--  server. Any issues with sending to or receiving from the server will result
+--  in a socket error. 
+---------------------------------------------------------------------------------*/
 int Client::SetUserName(void) {
     char sbuf[BUFLEN] = {'\0'};
     char rbuf[20];
     size_t size = 0;
     size_t bytes = 0;
 
+    //Can replace this lower block of code for whatever input method
     std::cout << "What is your username:";
     fgets (sbuf, BUFLEN - 1, stdin);
     size = strlen(sbuf);
+    //End of input
 
-
-    printf("Length:%d\n", strlen(sbuf));
     sbuf[size - 1] = '\0';
     sbuf[size] = EOT;
 
@@ -712,6 +770,35 @@ int Client::SetUserName(void) {
     return 0;
 }
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Set Client User Name
+--
+--  DATE:           March 17, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier-Bracken
+--
+--  PROGRAMMER:     Tyler Trepanier-Bracken
+--
+--  INTERFACE:      int Client::CheckError(int error)
+--
+--  PARAMETERS:     int error
+--                      Error code to be checked.
+--
+--  RETURNS:        int error (Unchanged error code)
+--                      -Returns 0 when there is no error with Program execution
+--                      -Returns BADHOST (10) when the client was unable to 
+--                          connect to the host indicated from comand line.
+--                      -Returns SOCKETERROR (20) when there is an issue with 
+--                          a TCP socket
+--                      -Returns BUFFEROVERFLOW (30) when a message received a
+--                          bufferflow error
+--
+--  NOTES:
+--  Error checking function which displays output of the type and reason for the
+--  error.
+---------------------------------------------------------------------------------*/
 int Client::CheckError(int error)
 {
     switch(error)
