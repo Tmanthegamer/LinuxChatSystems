@@ -8,9 +8,6 @@
 --
 --  REVISIONS:      March 13, 2016 (Tyler Trepanier)
 --                      Redesign every file to be a C++ class.
---                  March 17, 2016 (Tyler Trepanier)
---                      Added in username functionality to the Client and the
---                      server.
 --                  March 18, 2016 (Tyler Trepanier)
 --                      Removed all functions, repurposed as a generic include
 --						file used by client and server.
