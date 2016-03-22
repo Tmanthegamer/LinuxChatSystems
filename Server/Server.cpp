@@ -571,10 +571,12 @@ int Server::AcceptNewConnection()
     {
         printf("Unable to acknowledge client's username.\n");
         return SOCKETERROR;
-    }
+    }  
 
-    AddUserToConnections(buf, new_sd);
-
+    /*
+    Before we accept the client, check to see if we have reach the maximum
+    amount of connections.
+    */
     for (i = 0; i < FD_SETSIZE; i++)
 	{
 		if (_client[i] < 0)
@@ -589,6 +591,8 @@ int Server::AcceptNewConnection()
 		printf ("Too many clients\n");
 		return TOOMANYCLIENTSERROR;
 	}
+
+    AddUserToConnections(buf, new_sd);
 
 	FD_SET (new_sd, &_all_set); 	// add new descriptor to set
 
