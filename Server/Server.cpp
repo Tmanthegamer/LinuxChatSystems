@@ -209,7 +209,7 @@ int Server::InitListenSocket()
 ---------------------------------------------------------------------------------*/
 int Server::SetSocketOpt()
 {
-	// set SO_REUSEADDR so port can be resused imemediately after exit, i.e., after CTRL-c
+	// set SO_REUSEADDR so port can be resused immediately after exit, i.e., after CTRL-c
     int flag = SOCKOPTFLAG;
     if (setsockopt (_listen_sd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag)) == -1)
 	{
