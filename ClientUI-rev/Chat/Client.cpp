@@ -171,7 +171,7 @@ std::fstream Client::_file;
 --  function to determine the severity of the error. All socket errors will
 --  terminate the program meanwhile buffer overflows can be ignored.
 ---------------------------------------------------------------------------------*/
-int Client::InitClient(char* host, short port, bool logToFile)
+int Client::InitClient(char* username, char* host, short port, bool logToFile)
 {
     int error = 0;
     if(port == 0)
@@ -192,7 +192,7 @@ int Client::InitClient(char* host, short port, bool logToFile)
     if((error = Connect()))
         return error;
 
-    if((error = SetUserName()))
+    if((error = SetUserName(username)))
         return error;
 
     return SUCCESS;
@@ -319,7 +319,7 @@ int Client::Connect(void)
 --  will knowingly stop at the EOT so this will allow for variable length
 --  packets.
 ---------------------------------------------------------------------------------*/
-int Client::SendAndReceiveData(void)
+int Client::SendAndReceiveData()
 {
     char sbuf[MAX_BUFFER] = {'\0'}; //Send buffer which will store the message.
     int errorCount = 0;             //Allows 5 failures before terminating the client.
@@ -764,7 +764,7 @@ int Client::CreateSocket(char *host, short port) {
 --  server. Any issues with sending to or receiving from the server will result
 --  in a socket error. 
 ---------------------------------------------------------------------------------*/
-int Client::SetUserName(void) {
+int Client::SetUserName(char* username) {
     char sbuf[BUFLEN] = {'\0'};
     char rbuf[20];
     size_t size = 0;

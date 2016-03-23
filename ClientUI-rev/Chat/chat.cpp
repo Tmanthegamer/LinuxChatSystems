@@ -47,11 +47,11 @@ void Chat::on_pushButton_chat_clicked()
             ui->stackedWidget->setCurrentIndex(1);
         }
 
-        if((error = clnt->SendAndReceiveData()) > 0)
-        {
-            clnt->CheckError(error);
-            return;
-        }
+//        if((error = clnt->SendAndReceiveData(username)) > 0)
+//        {
+//            clnt->CheckError(error);
+//            return;
+//        }
 
         ui->stackedWidget->setCurrentIndex(1);
 
