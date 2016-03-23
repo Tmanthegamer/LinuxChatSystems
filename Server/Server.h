@@ -442,6 +442,30 @@ public:
 ---------------------------------------------------------------------------------*/
     void SetPort(int _port);
 
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Generate Colour For User
+--
+--  DATE:           March 13, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      void GenerateColourForUser(char* user)
+--
+--  PARAMETERS:     char* user
+--                      User that will receive a unique colour.
+--
+--  RETURNS:        void
+--                      No return value.
+--
+--  NOTES:
+--  Gives the user a random colour for chat use.
+---------------------------------------------------------------------------------*/
+    void GenerateColourForUser(char* user);
+
 private:
     int _maxi;                      //Running total of all clients.
     int _listen_sd;                 //Listening socket

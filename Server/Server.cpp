@@ -785,6 +785,19 @@ void Server::AddUserToConnections(char *name, char *ipAddress, int socket)
 {
     char combo[MAX_BUFFER];
     sprintf(combo, "[%s] %s", ipAddress, name);
+    GenerateColourForUser(combo);
     std::string temp(combo);
     _clientUsernameMap.insert(std::make_pair(socket, temp));
+}
+
+void Server::GenerateColourForUser(char *user)
+{
+    char temp[MAX_BUFFER];
+    srand(time(NULL));
+    int random1 = rand() % 7 + 31;
+    char num[BUFLEN];
+    sprintf(num, "%d", random1);
+
+    sprintf(temp, "\033[0;%sm%s\033[0;37m", num, user);
+    memcpy(user, temp, strlen(temp));
 }
