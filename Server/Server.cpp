@@ -299,7 +299,6 @@ int Server::BindSocketAndListen()
 ---------------------------------------------------------------------------------*/
 int Server::WriteToAllClients(char* data, size_t datasize, int client)
 {
-	char ack[1] = { ACK };
     if(_maxi >= FD_SETSIZE)
 	{
         fprintf (stderr, "Too many clients in WriteToAllClients\n");
@@ -308,13 +307,13 @@ int Server::WriteToAllClients(char* data, size_t datasize, int client)
 
 	for (int i = 0; i <= _maxi; i++)
 	{
-		if (_client[i] < 0 /*|| _client[i] == client*/)
+		if (_client[i] < 0 || _client[i] == client)
         {
             continue; 
 		}
 		else
         {
-			printf("Sent:[%s] Size:[%lu] Client:[%d]\n", data, datasize, _client[i]);
+			//printf("Sent:[%s] Size:[%lu] Client:[%d]\n", data, datasize, _client[i]);
 
 			//Ignore any errors when failing to write to a client.
 			send(_client[i], data, datasize, 0);	 // echo to client
@@ -558,9 +557,15 @@ int Server::AcceptNewConnection()
 
 	printf(" Remote Address:  %s\n", inet_ntoa(_client_addr.sin_addr));
 
-    if ((bytes = recv(new_sd, buf, BUFLEN, 0)) == -1 && buf[bytes-1] == EOT) // Get the client's username.
+    if ((bytes = recv(new_sd, buf, BUFLEN, 0)) == -1) // Get the client's username.
     {
         printf("Unable to receive client's username.\n");
+        return SOCKETERROR;
+    }
+
+    if(bytes < 0 || buf[bytes-1] != EOT)
+    {
+        printf("Client username could not be accepted.\n");
         return SOCKETERROR;
     }
 

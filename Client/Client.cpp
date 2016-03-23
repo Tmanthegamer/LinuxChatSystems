@@ -335,7 +335,6 @@ int Client::SendAndReceiveData(void)
         fprintf(stderr, "%s: %s", _username, sbuf); // Print your message to the display
 
         bytes_to_send = strlen(sbuf) + 1;
-        printf("%zu\n", bytes_to_send);
         sbuf[bytes_to_send - 2] = '\0';
         sbuf[bytes_to_send - 1] = EOT;
 
@@ -769,11 +768,19 @@ int Client::SetUserName(void) {
     char sbuf[BUFLEN] = {'\0'};
     char rbuf[20];
     size_t size = 0;
-    size_t bytes = 0;
+    bool good_name = false;
 
-    //Can replace this lower block of code for whatever input method
-    std::cerr << "What is your username:";
-    fgets (sbuf, BUFLEN - 1, stdin);
+    while(!good_name)
+    {
+        std::cerr << "What is your username:";
+        fgets (sbuf, BUFLEN - 1, stdin);
+
+        if(strlen(sbuf) > 1)
+            good_name = true;
+        else
+            std::cerr << "A username is required..." << std::endl;
+    }
+
     size = strlen(sbuf);
     //End of input
 
