@@ -120,7 +120,7 @@
       <property name="geometry">
        <rect>
         <x>160</x>
-        <y>30</y>
+        <y>10</y>
         <width>321</width>
         <height>61</height>
        </rect>
@@ -159,6 +159,22 @@
       </property>
       <property name="clearButtonEnabled">
        <bool>false</bool>
+      </property>
+     </widget>
+     <widget class="QLabel" name="label_error">
+      <property name="geometry">
+       <rect>
+        <x>170</x>
+        <y>90</y>
+        <width>261</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="text">
+       <string/>
       </property>
      </widget>
     </widget>

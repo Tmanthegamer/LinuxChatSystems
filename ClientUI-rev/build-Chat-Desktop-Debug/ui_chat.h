@@ -42,6 +42,7 @@ public:
     QLabel *label_title;
     QLineEdit *lineEdit_port;
     QLineEdit *lineEdit_username;
+    QLabel *label_error;
     QWidget *page_2;
     QListWidget *listWidget_users;
     QPlainTextEdit *plainTextEdit_msg;
@@ -88,7 +89,7 @@ public:
         label_port->setFrameShadow(QFrame::Sunken);
         label_title = new QLabel(page);
         label_title->setObjectName(QStringLiteral("label_title"));
-        label_title->setGeometry(QRect(160, 30, 321, 61));
+        label_title->setGeometry(QRect(160, 10, 321, 61));
         label_title->setStyleSheet(QStringLiteral("font: 32pt \"VL Gothic\";"));
         lineEdit_port = new QLineEdit(page);
         lineEdit_port->setObjectName(QStringLiteral("lineEdit_port"));
@@ -97,6 +98,10 @@ public:
         lineEdit_username->setObjectName(QStringLiteral("lineEdit_username"));
         lineEdit_username->setGeometry(QRect(160, 150, 113, 32));
         lineEdit_username->setClearButtonEnabled(false);
+        label_error = new QLabel(page);
+        label_error->setObjectName(QStringLiteral("label_error"));
+        label_error->setGeometry(QRect(170, 90, 261, 20));
+        label_error->setStyleSheet(QStringLiteral(""));
         stackedWidget->addWidget(page);
         page_2 = new QWidget();
         page_2->setObjectName(QStringLiteral("page_2"));
@@ -144,6 +149,7 @@ public:
         label_title->setText(QApplication::translate("Chat", "C H A T", 0));
         lineEdit_port->setText(QString());
         lineEdit_username->setText(QString());
+        label_error->setText(QString());
         pushButton_sendmsg->setText(QApplication::translate("Chat", "Send", 0));
     } // retranslateUi
 

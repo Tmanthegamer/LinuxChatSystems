@@ -49,9 +49,13 @@ OBJECTS_DIR   = ./
 ####### Files
 
 SOURCES       = ../Chat/main.cpp \
-		../Chat/chat.cpp moc_chat.cpp
+		../Chat/chat.cpp \
+		../Chat/Client.cpp \
+		../Chat/PacketUtilities.cpp moc_chat.cpp
 OBJECTS       = main.o \
 		chat.o \
+		Client.o \
+		PacketUtilities.o \
 		moc_chat.o
 DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/common/unix.conf \
@@ -110,8 +114,12 @@ DIST          = /usr/lib64/qt5/mkspecs/features/spec_pre.prf \
 		/usr/lib64/qt5/mkspecs/features/exceptions.prf \
 		/usr/lib64/qt5/mkspecs/features/yacc.prf \
 		/usr/lib64/qt5/mkspecs/features/lex.prf \
-		../Chat/Chat.pro ../Chat/chat.h ../Chat/main.cpp \
-		../Chat/chat.cpp
+		../Chat/Chat.pro ../Chat/chat.h \
+		../Chat/Client.h \
+		../Chat/PacketUtilities.h ../Chat/main.cpp \
+		../Chat/chat.cpp \
+		../Chat/Client.cpp \
+		../Chat/PacketUtilities.cpp
 QMAKE_TARGET  = Chat
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = Chat
@@ -279,8 +287,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents ../Chat/chat.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../Chat/main.cpp ../Chat/chat.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../Chat/chat.h ../Chat/Client.h ../Chat/PacketUtilities.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../Chat/main.cpp ../Chat/chat.cpp ../Chat/Client.cpp ../Chat/PacketUtilities.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../Chat/chat.ui $(DISTDIR)/
 
 
@@ -307,7 +315,9 @@ compiler_rcc_clean:
 compiler_moc_header_make_all: moc_chat.cpp
 compiler_moc_header_clean:
 	-$(DEL_FILE) moc_chat.cpp
-moc_chat.cpp: ../Chat/chat.h
+moc_chat.cpp: ../Chat/Client.h \
+		../Chat/PacketUtilities.h \
+		../Chat/chat.h
 	/usr/lib64/qt5/bin/moc $(DEFINES) -I/usr/lib64/qt5/mkspecs/linux-g++ -I/root/Documents/LinuxChatSystems/ClientUI-rev/Chat -I/usr/include/qt5 -I/usr/include/qt5/QtWidgets -I/usr/include/qt5/QtGui -I/usr/include/qt5/QtCore -I. -I/usr/include/c++/5.3.1 -I/usr/include/c++/5.3.1/x86_64-redhat-linux -I/usr/include/c++/5.3.1/backward -I/usr/lib/gcc/x86_64-redhat-linux/5.3.1/include -I/usr/local/include -I/usr/include ../Chat/chat.h -o moc_chat.cpp
 
 compiler_moc_source_make_all:
@@ -328,12 +338,23 @@ compiler_clean: compiler_moc_header_clean compiler_uic_clean
 
 ####### Compile
 
-main.o: ../Chat/main.cpp ../Chat/chat.h
+main.o: ../Chat/main.cpp ../Chat/chat.h \
+		../Chat/Client.h \
+		../Chat/PacketUtilities.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../Chat/main.cpp
 
 chat.o: ../Chat/chat.cpp ../Chat/chat.h \
+		../Chat/Client.h \
+		../Chat/PacketUtilities.h \
 		ui_chat.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o chat.o ../Chat/chat.cpp
+
+Client.o: ../Chat/Client.cpp ../Chat/Client.h \
+		../Chat/PacketUtilities.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o Client.o ../Chat/Client.cpp
+
+PacketUtilities.o: ../Chat/PacketUtilities.cpp 
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o PacketUtilities.o ../Chat/PacketUtilities.cpp
 
 moc_chat.o: moc_chat.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_chat.o moc_chat.cpp

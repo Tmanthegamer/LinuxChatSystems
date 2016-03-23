@@ -11,10 +11,16 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Chat
 TEMPLATE = app
 
+OUTPUT += Console
+
 
 SOURCES += main.cpp\
-        chat.cpp
+        chat.cpp \
+    Client.cpp \
+    PacketUtilities.cpp
 
-HEADERS  += chat.h
+HEADERS  += chat.h \
+    Client.h \
+    PacketUtilities.h
 
 FORMS    += chat.ui
