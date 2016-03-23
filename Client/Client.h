@@ -44,6 +44,8 @@
 --                      Added in usernames to all client's messages.
 --                  March 18, 2016 (Tyler Trepanier)
 --                      Refactoring code removing unnecessary variables.
+--                  March 22, 2016 (Tyler Trepanier)
+--                      Refactoring to allow for chat logs to be dumped onto a file.
 --
 --  DESIGNERS:      Tyler Trepanier
 --
@@ -68,6 +70,11 @@
 
 #include <netdb.h>
 #include <pthread.h>
+#include <fstream>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <iostream>
 #include "../PacketUtilities.h"
 
 
@@ -84,17 +91,20 @@ public:
 --  REVISED:        March 17, 2016 (Tyler Trepanier)
 --                      Added in usernames to all client's messages.                       
 --
---  DESIGNER:       Tyler Trepanier-Bracken
+--  DESIGNER:       Tyler Trepanier
 --
---  PROGRAMMER:     Tyler Trepanier-Bracken
+--  PROGRAMMER:     Tyler Trepanier
 --
 --  INTERFACE:      int InitClient(char* host, 
---                                 short port)
+--                                 short port,
+--                                 bool logToFile)
 --
 --  PARAMETERS:     char* host
 --                      String indicating the address of the server.
 --                  short port
 --                      Requested port to use for the server indicated above.
+--                  bool logToFile
+--                      Flag that indicates whether or not to write to a file.
 --
 --  RETURNS:        int error
 --                      -Returns 0 when there is no error with Program execution
@@ -104,6 +114,8 @@ public:
 --                          a TCP socket
 --                      -Returns BUFFEROVERFLOW (30) when a message received a
 --                          bufferflow error
+--                      -Returns CANNOTOPENFILE (60) when unable to open a file
+--                          for logging a chat log.
 --
 --  NOTES:
 --  Initializes a client required resources before allowing them to enter the
@@ -116,8 +128,90 @@ public:
 --  function to determine the severity of the error. All socket errors will
 --  terminate the program meanwhile buffer overflows can be ignored.
 ---------------------------------------------------------------------------------*/
-    int InitClient(char* host = "127.0.0.1", short port  = SERVER_TCP_PORT);
-    
+    int InitClient(char* host = "127.0.0.1",
+                   short port  = SERVER_TCP_PORT,
+                   bool logToFile = false);
+
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Log Chat Message
+--
+--  DATE:           March 22, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      static int LogMessage(char* msg, size_t msgSize)
+--
+--  PARAMETERS:     char* msg
+--                      Chat message to append to the file.
+--                  size_t msgSize
+--                      Size of the message.
+--
+--  RETURNS:        int error
+--                      -Returns 0 upon a successful write to the file.
+--                      -Returns CANNOTOPENFILE when it is unable to append to
+--                          to the file. Not a critical error.
+--
+--  NOTES:
+--  Logs a message to pre-opened text file.
+---------------------------------------------------------------------------------*/
+    static int LogMessage(char* msg, size_t msgSize);
+
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Log My Chat Message
+--
+--  DATE:           March 22, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      int LogMyMessage(char* msg);
+--
+--  PARAMETERS:     char* msg
+--                      Chat message made by the client to append to the file.
+--
+--  RETURNS:        int error
+--                      -Returns 0 upon a successful write to the file.
+--                      -Returns CANNOTOPENFILE when it is unable to append to
+--                          to the file. Not a critical error.
+--
+--  NOTES:
+--  Prepends the sent message and writes it to the chat log file.
+---------------------------------------------------------------------------------*/
+    int LogMyMessage(char* msg);
+
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Open File
+--
+--  DATE:           March 22, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      int OpenFile();
+--
+--  PARAMETERS:     void
+--                      Takes no parameters
+--
+--  RETURNS:        int error
+--                      -Returns 0 upon a successful opening of a file.
+--                      -Returns CANNOTOPENFILE when it is unable to append to
+--                          to the file. Not a critical error.
+--
+--  NOTES:
+--  Opens a file for creation and only writes to the file.
+---------------------------------------------------------------------------------*/
+    int OpenFile();
+
 /*---------------------------------------------------------------------------------
 --  FUNCTION:       Create TCP Socket
 --
@@ -519,6 +613,7 @@ public:
 
 private:
     short _port;                    // Communication Port
+    static std::fstream _file;      // File that can store chat logs
     static int _socket;             // Constant communication socket
     struct hostent *_hp;            // Host address resolver
     struct sockaddr_in _server;     // Server address

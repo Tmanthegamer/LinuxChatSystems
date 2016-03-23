@@ -55,6 +55,7 @@
 
 #include "Client.h"
 int Client::_socket = -1; // Static socket used to read data from a Server.
+std::fstream Client::_file;
 
 /*-------------------------------------------------------------------------------------
 --  FUNCTION:       Main
@@ -94,23 +95,30 @@ int main (int argc, char **argv)
 {
     Client *clnt = new Client();
     int error = 0;
-    short port = 0;
+    char* host = "127.0.0.1";       // Default host
+    short port = SERVER_TCP_PORT;   // Default port
+    bool logToFile = true;          // Default, do not write chat to file
 
-    if(argc == 3)
+    if(argc == 4 && strcmp(argv[3], "log") == 0)
+    {
+        logToFile = true;
+    }
+    if(argc == 3 || argc == 4)
     {
         sscanf(argv[2], "%u", &port);
-        if(clnt->InitClient(argv[1], port) > 0)
-        {
-            clnt->CheckError(error);
-            return error;
-        }
     }
-    else if((error = clnt->InitClient()) > 0)
+    else if(argc >= 2 && argc <= 4)
+    {
+        host = argv[1];
+    }
+
+    if((error = clnt->InitClient(host, port, logToFile)) > 0)
     {
         clnt->CheckError(error);
         return error;
     }
 
+    //Creating the client was a success, begin the chat.
     if((error = clnt->SendAndReceiveData()) > 0)
     {
         clnt->CheckError(error);
@@ -140,6 +148,8 @@ int main (int argc, char **argv)
 --                      String indicating the address of the server.
 --                  short port
 --                      Requested port to use for the server indicated above.
+--                  bool logToFile
+--                      Boolean flag to decide whether or not to log chat to a file.
 --
 --  RETURNS:        int error
 --                      -Returns 0 when there is no error with Program execution
@@ -161,9 +171,14 @@ int main (int argc, char **argv)
 --  function to determine the severity of the error. All socket errors will
 --  terminate the program meanwhile buffer overflows can be ignored.
 ---------------------------------------------------------------------------------*/
-int Client::InitClient(char* host, short port)
+int Client::InitClient(char* host, short port, bool logToFile)
 {
     int error = 0;
+    if(port == 0)
+        port = SERVER_TCP_PORT;
+
+    if(logToFile && (error = OpenFile()) != SUCCESS)
+        return error;
 
     if((error = CreateSocket(host, port)))
         return error;
@@ -315,26 +330,25 @@ int Client::SendAndReceiveData(void)
 
     while(errorCount < 5)
     {
-        std::cout << "Transmit: " << std::endl;
         fgets (sbuf, MAX_BUFFER-1, stdin);
 
+        fprintf(stderr, "%s: %s", _username, sbuf); // Print your message to the display
+
         bytes_to_send = strlen(sbuf) + 1;
-        printf("%u\n", bytes_to_send);
+        printf("%zu\n", bytes_to_send);
         sbuf[bytes_to_send - 2] = '\0';
         sbuf[bytes_to_send - 1] = EOT;
 
         // Transmit data through the socket
-        if((error[errorCount] = SendData(sbuf, bytes_to_send))
+        if((error[errorCount] = SendData(sbuf, bytes_to_send)) != SUCCESS)
         {
-            std::cerr << "Client unable to send data at this time." << std::endl;
+            std::cerr << "Unable to send message at this time." << std::endl;
             errorCount++;
         }
         else
         {
             errorCount = 0;
         }
-        printf("errorCount:%d\n", errorCount);
-        fflush(stdout);
     }
 
     return error[0]; // return the original error only
@@ -391,6 +405,8 @@ int Client::SendData(char* data, size_t datasize)
             sendComplete = true;
         }
     }
+    if(_file.is_open())
+        LogMyMessage(data);
 
     return SUCCESS;
 }
@@ -476,9 +492,12 @@ int Client::ReceiveData(char* data, size_t* size)
     (*size) = totalBytes;
     memcpy(data, recvBuffer, sizeof(recvBuffer));
 
-    totalBytes != 1 ? printf ("Received: [%s]\n", recvBuffer) : printf("Message Delivered.\n");
-    fflush(stdout);
+    if(_file.is_open())
+    {
+        LogMessage(data, (*size) - 1);
+    }
 
+    totalBytes != 1 ? fprintf (stderr, "%s\n", recvBuffer) : SUCCESS;
 
     return SUCCESS;
 }
@@ -753,7 +772,7 @@ int Client::SetUserName(void) {
     size_t bytes = 0;
 
     //Can replace this lower block of code for whatever input method
-    std::cout << "What is your username:";
+    std::cerr << "What is your username:";
     fgets (sbuf, BUFLEN - 1, stdin);
     size = strlen(sbuf);
     //End of input
@@ -818,17 +837,121 @@ int Client::CheckError(int error)
     switch(error)
     {
         case BADHOST:
-            std::cerr << "Badhost" << std::endl;
+            std::cerr << "Badhost, unable to connect." << std::endl;
             break;
         case SOCKETERROR:
-            std::cerr << "Socket Error" << std::endl;
+            std::cerr << "Unknown Socket Error." << std::endl;
             break;
         case BUFFEROVERFLOW:
             std::cerr << "Buffer overflow" << std::endl;
-            return error;
+            break;
         case SOCKOPTERROR:
             std::cerr << "Set socket operation" << std::endl;
-            return error;
+            break;
+        case CANNOTOPENFILE:
+            std::cerr << "Unable to open a file to appened to the chat log." << std::endl;
+            break;
     }
     return error;
+}
+
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Log Chat Message
+--
+--  DATE:           March 22, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      int Client::LogMessage(char* msg, size_t msgSize)
+--
+--  PARAMETERS:     char* msg
+--                      Chat message to append to the file.
+--                  size_t msgSize
+--                      Size of the message.
+--
+--  RETURNS:        int error
+--                      -Returns 0 upon a successful write to the file.
+--                      -Returns CANNOTOPENFILE when it is unable to append to
+--                          to the file. Not a critical error.
+--
+--  NOTES:
+--  Logs a message to pre-opened text file.
+---------------------------------------------------------------------------------*/
+int Client::LogMessage(char* msg, size_t msgSize)
+{
+    std::string temp(msg);
+    if(_file.is_open())
+    {
+        _file << temp;
+        _file <<  "\n\r";
+        return SUCCESS;
+    }
+    return CANNOTOPENFILE;
+}
+
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Log My Chat Message
+--
+--  DATE:           March 22, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      int Client::LogMyMessage(char* msg);
+--
+--  PARAMETERS:     char* msg
+--                      Chat message made by the client to append to the file.
+--
+--  RETURNS:        int error
+--                      -Returns 0 upon a successful write to the file.
+--                      -Returns CANNOTOPENFILE when it is unable to append to
+--                          to the file. Not a critical error.
+--
+--  NOTES:
+--  Prepends the sent message and writes it to the chat log file.
+---------------------------------------------------------------------------------*/
+int Client::LogMyMessage(char *msg) {
+    char msgLog[MAX_BUFFER];
+
+    sprintf(msgLog, "%s: %s", _username, msg);
+    return LogMessage(msgLog, strlen(msgLog));
+}
+
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Open File
+--
+--  DATE:           March 22, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      int Client::OpenFile();
+--
+--  PARAMETERS:     void
+--                      Takes no parameters
+--
+--  RETURNS:        int error
+--                      -Returns 0 upon a successful opening of a file.
+--                      -Returns CANNOTOPENFILE when it is unable to append to
+--                          to the file. Not a critical error.
+--
+--  NOTES:
+--  Opens a file for creation and only writes to the file.
+---------------------------------------------------------------------------------*/
+int Client::OpenFile()
+{
+    _file.open ("chat_log.txt", std::fstream::out | std::fstream::trunc);
+    if(!_file.is_open())
+        return CANNOTOPENFILE;
+    return SUCCESS;
 }

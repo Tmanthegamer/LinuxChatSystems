@@ -43,6 +43,7 @@
 #define BUFLEN			    255     // Standard Buffer length for small messages.
 #define MAX_BUFFER          2048    // Maximum message size allowed
 
+#define CANNOTOPENFILE      60      // Unable to open a file, not a critical error
 #define SOCKOPTERROR	    50		// Set socket operation error
 #define TOOMANYCLIENTSERROR 40		// Too many current connections
 #define BUFFEROVERFLOW      30      // Buffer overflow error

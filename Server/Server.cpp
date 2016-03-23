@@ -302,14 +302,13 @@ int Server::WriteToAllClients(char* data, size_t datasize, int client)
 	char ack[1] = { ACK };
     if(_maxi >= FD_SETSIZE)
 	{
-			fprintf (stderr, "Too many clients in WriteToAllClients\n");
-			return TOOMANYCLIENTSERROR;
+        fprintf (stderr, "Too many clients in WriteToAllClients\n");
+        return TOOMANYCLIENTSERROR;
 	}
 
 	for (int i = 0; i <= _maxi; i++)
 	{
-		printf("[socket:%d]\n", _client[i]);
-		if (_client[i] < 0 || _client[i] == client)
+		if (_client[i] < 0 /*|| _client[i] == client*/)
         {
             continue; 
 		}
@@ -322,7 +321,7 @@ int Server::WriteToAllClients(char* data, size_t datasize, int client)
 		}
 	}
 
-    send(client, ack, 1, 0);
+    //send(client, ack, 1, 0);
 
     return SUCCESS;
 }
