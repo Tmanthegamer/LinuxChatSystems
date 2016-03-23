@@ -28,7 +28,7 @@
 --    
 --                  int AcceptNewConnection();
 --   
---                  void AddUserToConnections(char* name, int socket);
+--                  void AddUserToConnections(char *name, char *ipAddress, int socket);
 --    
 --                  void SystemFatal(const char*);
 --    
@@ -348,10 +348,12 @@ public:
 --
 --  PROGRAMMER:     Tyler Trepanier
 --
---  INTERFACE:      void Server::AddUserToConnections(char *name, int socket)
+--  INTERFACE:      void Server::AddUserToConnections(char *name, char *ipAddress, int socket)
 --
 --  PARAMETERS:     char *name 
---                      Desired client name.                                   
+--                      Desired client name.
+--                  char *ipAddress
+--                      Client's IP Address.
 --                  int socket
 --                      Socket used as the key in the client username map.
 --
@@ -362,7 +364,7 @@ public:
 --  Adds in the client username to the client username map and uses their socket
 --  as the key.
 ---------------------------------------------------------------------------------*/
-    void AddUserToConnections(char* name, int socket);
+    void AddUserToConnections(char *name, char *ipAddress, int socket);
 
 /*---------------------------------------------------------------------------------
 --  FUNCTION:       System Fatal

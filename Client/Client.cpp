@@ -404,7 +404,7 @@ int Client::SendData(char* data, size_t datasize)
             sendComplete = true;
         }
     }
-    if(_file.is_open())
+    if(_file.good())
         LogMyMessage(data);
 
     return SUCCESS;
@@ -491,7 +491,7 @@ int Client::ReceiveData(char* data, size_t* size)
     (*size) = totalBytes;
     memcpy(data, recvBuffer, sizeof(recvBuffer));
 
-    if(_file.is_open())
+    if(_file.good())
     {
         LogMessage(data, (*size) - 1);
     }
@@ -891,10 +891,11 @@ int Client::CheckError(int error)
 int Client::LogMessage(char* msg, size_t msgSize)
 {
     std::string temp(msg);
-    if(_file.is_open())
+    _file << temp;
+    _file <<  "\n";
+    _file.flush();
+    if(!_file.fail())
     {
-        _file << temp;
-        _file <<  "\n\r";
         return SUCCESS;
     }
     return CANNOTOPENFILE;
@@ -958,7 +959,7 @@ int Client::LogMyMessage(char *msg) {
 int Client::OpenFile()
 {
     _file.open ("chat_log.txt", std::fstream::out | std::fstream::trunc);
-    if(!_file.is_open())
+    if(!_file || !_file.good())
         return CANNOTOPENFILE;
     return SUCCESS;
 }

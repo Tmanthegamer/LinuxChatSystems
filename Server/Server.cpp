@@ -596,7 +596,7 @@ int Server::AcceptNewConnection()
 		return TOOMANYCLIENTSERROR;
 	}
 
-    AddUserToConnections(buf, new_sd);
+    AddUserToConnections(buf, inet_ntoa(_client_addr.sin_addr), new_sd);
 
 	FD_SET (new_sd, &_all_set); 	// add new descriptor to set
 
@@ -781,8 +781,10 @@ void Server::AppendUserNameToMessage(int client, char *msg, size_t* msgSize)
 --  Adds in the client username to the client username map and uses their socket
 --  as the key.
 ---------------------------------------------------------------------------------*/
-void Server::AddUserToConnections(char *name, int socket)
+void Server::AddUserToConnections(char *name, char *ipAddress, int socket)
 {
-    std::string temp(name);
+    char combo[MAX_BUFFER];
+    sprintf(combo, "[%s] %s", ipAddress, name);
+    std::string temp(combo);
     _clientUsernameMap.insert(std::make_pair(socket, temp));
 }
