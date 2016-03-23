@@ -171,7 +171,7 @@ std::fstream Client::_file;
 --  function to determine the severity of the error. All socket errors will
 --  terminate the program meanwhile buffer overflows can be ignored.
 ---------------------------------------------------------------------------------*/
-int Client::InitClient(char* username, char* host, short port, bool logToFile)
+int Client::InitClient(const char* username, char* host, short port, bool logToFile)
 {
     int error = 0;
     if(port == 0)
@@ -319,7 +319,7 @@ int Client::Connect(void)
 --  will knowingly stop at the EOT so this will allow for variable length
 --  packets.
 ---------------------------------------------------------------------------------*/
-int Client::SendAndReceiveData()
+int Client::SendAndReceiveData(const char* username, const char* msg)
 {
     char sbuf[MAX_BUFFER] = {'\0'}; //Send buffer which will store the message.
     int errorCount = 0;             //Allows 5 failures before terminating the client.
@@ -330,9 +330,9 @@ int Client::SendAndReceiveData()
 
     while(errorCount < 5)
     {
-        fgets (sbuf, MAX_BUFFER-1, stdin);
+        //fgets (sbuf, MAX_BUFFER-1, stdin);
 
-        fprintf(stderr, "%s: %s", _username, sbuf); // Print your message to the display
+        //fprintf(stderr, "%s: %s", _username, sbuf); // Print your message to the display
 
         bytes_to_send = strlen(sbuf) + 1;
         sbuf[bytes_to_send - 2] = '\0';
@@ -446,7 +446,9 @@ int Client::SendData(char* data, size_t datasize)
 --  until all contents have been received or there is an error.
 --
 --  There are three conditions that will stop a client from receiving data:
---      1) The server is indicating that this client has successfully broadcasted
+--      1) The server is indicating that thi ui->lineEdit_username->setText("Vivek");
+    ui->lineEdit_ip->setText("192.168.0.21");
+    ui->lineEdit_port->setText("9654");s client has successfully broadcasted
 --         their message.
 --      2) The server has sent a message from another client and is relaying the
 --         message to this client.
@@ -510,7 +512,7 @@ int Client::ReceiveData(char* data, size_t* size)
 --
 --  PROGRAMMER:     Tyler Trepanier
 --
---  INTERFACE:      int Client::CreateReadThread(void)
+--  INTERFACE:      int Client::Createf(void)
 --
 --  PARAMETERS:     void
 --                      There are no function arguments.
@@ -607,8 +609,10 @@ void *Client::GetData(void *arg) {
 
     while(1)
     {
+        std::cerr << "INSIDE GET DATA()" << std::endl;
         if((error = ReceiveData(recvBuffer, &datasize)) != SUCCESS) //Error occured
         {
+            std::cerr << "INSIDE RECDATA" << std::endl;
             if(error == BUFFEROVERFLOW)
             {
                 std::cerr << "Receive buffer overflow." << std::endl;
@@ -622,6 +626,7 @@ void *Client::GetData(void *arg) {
         else if(datasize > 1) // Must have received data and not just ACK
         {
             recvBuffer[datasize-1] = EOT;
+            std::cerr << recvBuffer << std::endl;
             HandleIncomingData(recvBuffer, datasize);
         }
 
@@ -764,7 +769,7 @@ int Client::CreateSocket(char *host, short port) {
 --  server. Any issues with sending to or receiving from the server will result
 --  in a socket error. 
 ---------------------------------------------------------------------------------*/
-int Client::SetUserName(char* username) {
+int Client::SetUserName(const char* username) {
     char sbuf[BUFLEN] = {'\0'};
     char rbuf[20];
     size_t size = 0;
@@ -772,17 +777,17 @@ int Client::SetUserName(char* username) {
 
     while(!good_name)
     {
-        std::cerr << "What is your username:";
-        fgets (sbuf, BUFLEN - 1, stdin);
-
+        strcpy(sbuf, username);
+        std::cerr << sbuf << ": " << username << std::endl;
         if(strlen(sbuf) > 1)
             good_name = true;
         else
             std::cerr << "A username is required..." << std::endl;
     }
 
-    size = strlen(sbuf);
+    size = strlen(sbuf)+1;
     //End of input
+    std::cerr << size << std::endl;
 
     sbuf[size - 1] = '\0';
     sbuf[size] = EOT;
