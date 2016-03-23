@@ -785,7 +785,7 @@ void Server::AddUserToConnections(char *name, char *ipAddress, int socket)
 {
     char combo[MAX_BUFFER];
     sprintf(combo, "[%s] %s", ipAddress, name);
-    GenerateColourForUser(combo);
+    //GenerateColourForUser(combo);
     std::string temp(combo);
     _clientUsernameMap.insert(std::make_pair(socket, temp));
 }
