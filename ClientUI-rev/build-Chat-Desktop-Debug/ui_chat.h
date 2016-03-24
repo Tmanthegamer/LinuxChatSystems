@@ -14,6 +14,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QCheckBox>
+#include <QtWidgets/QFrame>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
@@ -43,9 +44,10 @@ public:
     QLabel *label_title;
     QLineEdit *lineEdit_port;
     QLineEdit *lineEdit_username;
-    QLabel *label_tag;
-    QCheckBox *checkBox_logs;
     QLabel *label_error;
+    QCheckBox *checkBox_logs;
+    QLabel *label_tag;
+    QFrame *line;
     QWidget *page_2;
     QPlainTextEdit *plainTextEdit_msg;
     QPushButton *pushButton_sendmsg;
@@ -59,7 +61,7 @@ public:
     {
         if (Chat->objectName().isEmpty())
             Chat->setObjectName(QStringLiteral("Chat"));
-        Chat->resize(484, 379);
+        Chat->resize(484, 391);
         Chat->setStyleSheet(QStringLiteral(""));
         centralWidget = new QWidget(Chat);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
@@ -71,22 +73,22 @@ public:
         page->setObjectName(QStringLiteral("page"));
         lineEdit_ip = new QLineEdit(page);
         lineEdit_ip->setObjectName(QStringLiteral("lineEdit_ip"));
-        lineEdit_ip->setGeometry(QRect(110, 200, 113, 32));
+        lineEdit_ip->setGeometry(QRect(110, 240, 113, 32));
         lineEdit_ip->setStyleSheet(QStringLiteral("background-color: rgb(255, 255, 255)"));
         label_ip = new QLabel(page);
         label_ip->setObjectName(QStringLiteral("label_ip"));
-        label_ip->setGeometry(QRect(110, 180, 111, 20));
+        label_ip->setGeometry(QRect(110, 220, 111, 20));
         label_ip->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\";"));
         label_ip->setFrameShape(QFrame::Box);
         label_ip->setFrameShadow(QFrame::Sunken);
         label_ip->setAlignment(Qt::AlignCenter);
         pushButton_chat = new QPushButton(page);
         pushButton_chat->setObjectName(QStringLiteral("pushButton_chat"));
-        pushButton_chat->setGeometry(QRect(230, 240, 111, 51));
+        pushButton_chat->setGeometry(QRect(230, 280, 111, 51));
         pushButton_chat->setStyleSheet(QStringLiteral(""));
         label_username = new QLabel(page);
         label_username->setObjectName(QStringLiteral("label_username"));
-        label_username->setGeometry(QRect(110, 240, 111, 20));
+        label_username->setGeometry(QRect(110, 280, 111, 20));
         label_username->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\";"));
         label_username->setFrameShape(QFrame::Box);
         label_username->setFrameShadow(QFrame::Sunken);
@@ -94,38 +96,44 @@ public:
         label_username->setAlignment(Qt::AlignCenter);
         label_port = new QLabel(page);
         label_port->setObjectName(QStringLiteral("label_port"));
-        label_port->setGeometry(QRect(230, 180, 111, 20));
+        label_port->setGeometry(QRect(230, 220, 111, 20));
         label_port->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\";"));
         label_port->setFrameShape(QFrame::Box);
         label_port->setFrameShadow(QFrame::Sunken);
         label_port->setAlignment(Qt::AlignCenter);
         label_title = new QLabel(page);
         label_title->setObjectName(QStringLiteral("label_title"));
-        label_title->setGeometry(QRect(110, 30, 231, 111));
+        label_title->setGeometry(QRect(20, 30, 421, 121));
         label_title->setStyleSheet(QStringLiteral("font: 32pt \"VL Gothic\";"));
         label_title->setFrameShape(QFrame::Box);
         label_title->setAlignment(Qt::AlignCenter);
         lineEdit_port = new QLineEdit(page);
         lineEdit_port->setObjectName(QStringLiteral("lineEdit_port"));
-        lineEdit_port->setGeometry(QRect(230, 200, 113, 32));
+        lineEdit_port->setGeometry(QRect(230, 240, 113, 32));
         lineEdit_port->setStyleSheet(QStringLiteral("background-color: rgb(255, 255, 255)"));
         lineEdit_username = new QLineEdit(page);
         lineEdit_username->setObjectName(QStringLiteral("lineEdit_username"));
-        lineEdit_username->setGeometry(QRect(110, 260, 113, 32));
+        lineEdit_username->setGeometry(QRect(110, 300, 113, 32));
         lineEdit_username->setStyleSheet(QStringLiteral("background-color: rgb(255, 255, 255)"));
         lineEdit_username->setClearButtonEnabled(false);
-        label_tag = new QLabel(page);
-        label_tag->setObjectName(QStringLiteral("label_tag"));
-        label_tag->setGeometry(QRect(110, 150, 271, 20));
-        label_tag->setStyleSheet(QStringLiteral("text-color: rgb(255, 0, 0);"));
-        checkBox_logs = new QCheckBox(page);
-        checkBox_logs->setObjectName(QStringLiteral("checkBox_logs"));
-        checkBox_logs->setGeometry(QRect(240, 300, 131, 31));
-        checkBox_logs->setStyleSheet(QStringLiteral("font: 11pt \"Carlito\";"));
         label_error = new QLabel(page);
         label_error->setObjectName(QStringLiteral("label_error"));
-        label_error->setGeometry(QRect(60, 150, 341, 20));
+        label_error->setGeometry(QRect(90, 160, 271, 20));
+        label_error->setStyleSheet(QStringLiteral("text-color: rgb(255, 0, 0);"));
         label_error->setAlignment(Qt::AlignCenter);
+        checkBox_logs = new QCheckBox(page);
+        checkBox_logs->setObjectName(QStringLiteral("checkBox_logs"));
+        checkBox_logs->setGeometry(QRect(240, 330, 131, 31));
+        checkBox_logs->setStyleSheet(QStringLiteral("font: 11pt \"Carlito\";"));
+        label_tag = new QLabel(page);
+        label_tag->setObjectName(QStringLiteral("label_tag"));
+        label_tag->setGeometry(QRect(60, 120, 341, 20));
+        label_tag->setAlignment(Qt::AlignCenter);
+        line = new QFrame(page);
+        line->setObjectName(QStringLiteral("line"));
+        line->setGeometry(QRect(70, 180, 311, 20));
+        line->setFrameShape(QFrame::HLine);
+        line->setFrameShadow(QFrame::Sunken);
         stackedWidget->addWidget(page);
         page_2 = new QWidget();
         page_2->setObjectName(QStringLiteral("page_2"));
@@ -187,9 +195,9 @@ public:
         label_title->setText(QApplication::translate("Chat", "C H A T", 0));
         lineEdit_port->setText(QString());
         lineEdit_username->setText(QString());
-        label_tag->setText(QString());
-        checkBox_logs->setText(QApplication::translate("Chat", "Save Logs", 0));
         label_error->setText(QString());
+        checkBox_logs->setText(QApplication::translate("Chat", "Save Logs", 0));
+        label_tag->setText(QApplication::translate("Chat", "The best linux chat client!", 0));
         pushButton_sendmsg->setText(QApplication::translate("Chat", "Send", 0));
         label->setText(QApplication::translate("Chat", "Messages", 0));
     } // retranslateUi

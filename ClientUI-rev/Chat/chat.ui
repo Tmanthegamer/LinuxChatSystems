@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>484</width>
-    <height>379</height>
+    <height>391</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,7 +37,7 @@
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>200</y>
+        <y>240</y>
         <width>113</width>
         <height>32</height>
        </rect>
@@ -53,7 +53,7 @@
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>180</y>
+        <y>220</y>
         <width>111</width>
         <height>20</height>
        </rect>
@@ -78,7 +78,7 @@
       <property name="geometry">
        <rect>
         <x>230</x>
-        <y>240</y>
+        <y>280</y>
         <width>111</width>
         <height>51</height>
        </rect>
@@ -94,7 +94,7 @@
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>240</y>
+        <y>280</y>
         <width>111</width>
         <height>20</height>
        </rect>
@@ -122,7 +122,7 @@
       <property name="geometry">
        <rect>
         <x>230</x>
-        <y>180</y>
+        <y>220</y>
         <width>111</width>
         <height>20</height>
        </rect>
@@ -146,10 +146,10 @@
      <widget class="QLabel" name="label_title">
       <property name="geometry">
        <rect>
-        <x>110</x>
+        <x>20</x>
         <y>30</y>
-        <width>231</width>
-        <height>111</height>
+        <width>421</width>
+        <height>121</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -169,7 +169,7 @@
       <property name="geometry">
        <rect>
         <x>230</x>
-        <y>200</y>
+        <y>240</y>
         <width>113</width>
         <height>32</height>
        </rect>
@@ -185,7 +185,7 @@
       <property name="geometry">
        <rect>
         <x>110</x>
-        <y>260</y>
+        <y>300</y>
         <width>113</width>
         <height>32</height>
        </rect>
@@ -200,11 +200,11 @@
        <bool>false</bool>
       </property>
      </widget>
-     <widget class="QLabel" name="label_tag">
+     <widget class="QLabel" name="label_error">
       <property name="geometry">
        <rect>
-        <x>110</x>
-        <y>150</y>
+        <x>90</x>
+        <y>160</y>
         <width>271</width>
         <height>20</height>
        </rect>
@@ -215,12 +215,15 @@
       <property name="text">
        <string/>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
      </widget>
      <widget class="QCheckBox" name="checkBox_logs">
       <property name="geometry">
        <rect>
         <x>240</x>
-        <y>300</y>
+        <y>330</y>
         <width>131</width>
         <height>31</height>
        </rect>
@@ -232,20 +235,33 @@
        <string>Save Logs</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_error">
+     <widget class="QLabel" name="label_tag">
       <property name="geometry">
        <rect>
         <x>60</x>
-        <y>150</y>
+        <y>120</y>
         <width>341</width>
         <height>20</height>
        </rect>
       </property>
       <property name="text">
-       <string/>
+       <string>The best linux chat client!</string>
       </property>
       <property name="alignment">
        <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+     <widget class="Line" name="line">
+      <property name="geometry">
+       <rect>
+        <x>70</x>
+        <y>180</y>
+        <width>311</width>
+        <height>20</height>
+       </rect>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </widget>
