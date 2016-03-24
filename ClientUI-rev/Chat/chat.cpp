@@ -1,3 +1,39 @@
+/*-------------------------------------------------------------------------------------
+--  SOURCE FILE:    chat.cpp - Chat Client
+--
+--  PROGRAM:        Chat.exe
+--
+--  FUNCTIONS:      Chat::Chat(QWidget *parent)
+--                      -- Constructor
+--
+--                  Chat::~Chat()
+--                      -- Destructor
+--
+--                  void Chat::setEditText(const QString &str)
+--
+--                  void Chat::on_pushButton_chat_clicked(void)
+--
+--                  void Chat::on_pushButton_sendmsg_clicked(void)
+--
+--                  int Connect(void);
+--
+--
+--  DATE:           March 17, 2016
+--
+--  REVISIONS:      March 23, 2016
+--                    Integrated networking to the UI. - Vivek Kalia
+--
+--  DESIGNERS:      Vivek Kalia
+--
+--  PROGRAMMERS:    Vivek Kalia
+--
+--  NOTES:
+--  This program entity connects to an operating server where it has the ability to
+--  communication with other similar instances of this Client. The Client will be
+--  able to see the other clients in the chat room and any messages that is sent
+--  within the chat room.
+-------------------------------------------------------------------------------------*/
+
 #include "chat.h"
 #include "ui_chat.h"
 

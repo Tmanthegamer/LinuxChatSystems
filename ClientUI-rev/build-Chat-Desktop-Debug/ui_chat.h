@@ -78,18 +78,24 @@ public:
         label_ip = new QLabel(page);
         label_ip->setObjectName(QStringLiteral("label_ip"));
         label_ip->setGeometry(QRect(110, 220, 111, 20));
-        label_ip->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\";"));
+        label_ip->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\"; border-radius: 10px;"));
         label_ip->setFrameShape(QFrame::Box);
         label_ip->setFrameShadow(QFrame::Sunken);
         label_ip->setAlignment(Qt::AlignCenter);
         pushButton_chat = new QPushButton(page);
         pushButton_chat->setObjectName(QStringLiteral("pushButton_chat"));
         pushButton_chat->setGeometry(QRect(230, 280, 111, 51));
-        pushButton_chat->setStyleSheet(QStringLiteral(""));
+        QFont font;
+        font.setFamily(QStringLiteral("Android Emoji"));
+        font.setBold(true);
+        font.setWeight(75);
+        pushButton_chat->setFont(font);
+        pushButton_chat->setStyleSheet(QStringLiteral("background-color: rgb(158, 204, 143); text-color: \"white\"; border-radius: 15px;"));
+        pushButton_chat->setFlat(false);
         label_username = new QLabel(page);
         label_username->setObjectName(QStringLiteral("label_username"));
         label_username->setGeometry(QRect(110, 280, 111, 20));
-        label_username->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\";"));
+        label_username->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\"; border-radius: 5px;"));
         label_username->setFrameShape(QFrame::Box);
         label_username->setFrameShadow(QFrame::Sunken);
         label_username->setLineWidth(1);
@@ -97,15 +103,16 @@ public:
         label_port = new QLabel(page);
         label_port->setObjectName(QStringLiteral("label_port"));
         label_port->setGeometry(QRect(230, 220, 111, 20));
-        label_port->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\";"));
+        label_port->setStyleSheet(QStringLiteral("font: 11pt \"URW Gothic L\"; border-radius: 5px;"));
         label_port->setFrameShape(QFrame::Box);
         label_port->setFrameShadow(QFrame::Sunken);
         label_port->setAlignment(Qt::AlignCenter);
         label_title = new QLabel(page);
         label_title->setObjectName(QStringLiteral("label_title"));
         label_title->setGeometry(QRect(20, 30, 421, 121));
-        label_title->setStyleSheet(QStringLiteral("font: 32pt \"VL Gothic\";"));
+        label_title->setStyleSheet(QStringLiteral("font: 32pt \"VL Gothic\"; "));
         label_title->setFrameShape(QFrame::Box);
+        label_title->setFrameShadow(QFrame::Sunken);
         label_title->setAlignment(Qt::AlignCenter);
         lineEdit_port = new QLineEdit(page);
         lineEdit_port->setObjectName(QStringLiteral("lineEdit_port"));
@@ -140,15 +147,15 @@ public:
         plainTextEdit_msg = new QPlainTextEdit(page_2);
         plainTextEdit_msg->setObjectName(QStringLiteral("plainTextEdit_msg"));
         plainTextEdit_msg->setGeometry(QRect(10, 270, 341, 61));
-        plainTextEdit_msg->setStyleSheet(QStringLiteral("background-color:rgb(255, 255, 255)"));
+        plainTextEdit_msg->setStyleSheet(QStringLiteral("background-color:rgb(255, 255, 255); border-radius: 5px;"));
         pushButton_sendmsg = new QPushButton(page_2);
         pushButton_sendmsg->setObjectName(QStringLiteral("pushButton_sendmsg"));
         pushButton_sendmsg->setGeometry(QRect(360, 270, 95, 61));
-        pushButton_sendmsg->setStyleSheet(QStringLiteral("background-color:rgb(255, 255, 255); text-color: \"black\";"));
+        pushButton_sendmsg->setStyleSheet(QStringLiteral("background-color: rgb(158, 204, 143); text-color: \"white\"; border-radius: 8px; text-color: \"white\";"));
         listWidget_messages = new QListWidget(page_2);
         listWidget_messages->setObjectName(QStringLiteral("listWidget_messages"));
         listWidget_messages->setGeometry(QRect(10, 31, 441, 231));
-        listWidget_messages->setStyleSheet(QStringLiteral("background-color:rgb(255, 255, 255)"));
+        listWidget_messages->setStyleSheet(QStringLiteral("background-color:rgb(255, 255, 255); border-radius: 5px;"));
         listWidget_messages->setFrameShadow(QFrame::Sunken);
         listWidget_messages->setAutoScroll(false);
         listWidget_messages->setAutoScrollMargin(0);
@@ -161,6 +168,7 @@ public:
         label = new QLabel(page_2);
         label->setObjectName(QStringLiteral("label"));
         label->setGeometry(QRect(10, 10, 81, 20));
+        label->setStyleSheet(QStringLiteral("border-radius: 5px;"));
         label->setFrameShape(QFrame::StyledPanel);
         label->setFrameShadow(QFrame::Sunken);
         stackedWidget->addWidget(page_2);
@@ -179,6 +187,7 @@ public:
         retranslateUi(Chat);
 
         stackedWidget->setCurrentIndex(0);
+        pushButton_chat->setDefault(false);
 
 
         QMetaObject::connectSlotsByName(Chat);

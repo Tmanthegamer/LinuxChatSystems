@@ -59,7 +59,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">font: 11pt &quot;URW Gothic L&quot;;</string>
+       <string notr="true">font: 11pt &quot;URW Gothic L&quot;; border-radius: 10px;</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::Box</enum>
@@ -83,11 +83,24 @@
         <height>51</height>
        </rect>
       </property>
+      <property name="font">
+       <font>
+        <family>Android Emoji</family>
+        <weight>75</weight>
+        <bold>true</bold>
+       </font>
+      </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">background-color: rgb(158, 204, 143); text-color: &quot;white&quot;; border-radius: 15px;</string>
       </property>
       <property name="text">
        <string>Chat!</string>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
       </property>
      </widget>
      <widget class="QLabel" name="label_username">
@@ -100,7 +113,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">font: 11pt &quot;URW Gothic L&quot;;</string>
+       <string notr="true">font: 11pt &quot;URW Gothic L&quot;; border-radius: 5px;</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::Box</enum>
@@ -128,7 +141,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">font: 11pt &quot;URW Gothic L&quot;;</string>
+       <string notr="true">font: 11pt &quot;URW Gothic L&quot;; border-radius: 5px;</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::Box</enum>
@@ -153,10 +166,13 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">font: 32pt &quot;VL Gothic&quot;;</string>
+       <string notr="true">font: 32pt &quot;VL Gothic&quot;; </string>
       </property>
       <property name="frameShape">
        <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
       </property>
       <property name="text">
        <string>C H A T</string>
@@ -276,7 +292,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color:rgb(255, 255, 255)</string>
+       <string notr="true">background-color:rgb(255, 255, 255); border-radius: 5px;</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_sendmsg">
@@ -289,7 +305,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color:rgb(255, 255, 255); text-color: &quot;black&quot;;</string>
+       <string notr="true">background-color: rgb(158, 204, 143); text-color: &quot;white&quot;; border-radius: 8px; text-color: &quot;white&quot;;</string>
       </property>
       <property name="text">
        <string>Send</string>
@@ -305,7 +321,7 @@
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color:rgb(255, 255, 255)</string>
+       <string notr="true">background-color:rgb(255, 255, 255); border-radius: 5px;</string>
       </property>
       <property name="frameShadow">
        <enum>QFrame::Sunken</enum>
@@ -343,6 +359,9 @@
         <width>81</width>
         <height>20</height>
        </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">border-radius: 5px;</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
