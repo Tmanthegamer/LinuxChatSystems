@@ -75,6 +75,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <iostream>
+#include <QWidget>
+#include <QMainWindow>
 #include "PacketUtilities.h"
 
 
@@ -499,7 +501,7 @@ public:
 --  NOTES:
 --  Creates a thread that will continously receive data from the server.
 ---------------------------------------------------------------------------------*/
-    int CreateReadThread(void);
+    int CreateReadThread(QMainWindow *);
     
 /*---------------------------------------------------------------------------------
 --  FUNCTION:       Handle Incoming Data

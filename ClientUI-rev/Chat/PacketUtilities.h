@@ -41,7 +41,8 @@
 
 #define SERVER_TCP_PORT 	9654	// Default port
 #define BUFLEN			    255     // Standard Buffer length for small messages.
-#define MAX_BUFFER          2048    // Maximum message size allowed
+#define MAX_BUFFER          2048    // Maximum buffer size allowed
+#define MAX_MESSAGE         2000    // Maximum message size allowed
 
 #define CANNOTOPENFILE      60      // Unable to open a file, not a critical error
 #define SOCKOPTERROR	    50		// Set socket operation error

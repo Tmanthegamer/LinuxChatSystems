@@ -326,7 +326,7 @@ int Client::SendAndReceiveData(const char* username, const char* msg)
     int error[5] = {0};
     size_t bytes_to_send = 0;
 
-    CreateReadThread();
+    //CreateReadThread();
 
     while(errorCount < 5)
     {
@@ -493,7 +493,7 @@ int Client::ReceiveData(char* data, size_t* size)
     (*size) = totalBytes;
     memcpy(data, recvBuffer, sizeof(recvBuffer));
 
-    if(_file.good())
+    if(_file.good() && recvBuffer[0] != ACK)
     {
         LogMessage(data, (*size) - 1);
     }
@@ -524,9 +524,9 @@ int Client::ReceiveData(char* data, size_t* size)
 --  NOTES:
 --  Creates a thread that will continously receive data from the server.
 ---------------------------------------------------------------------------------*/
-int Client::CreateReadThread(void)
+int Client::CreateReadThread(QMainWindow *win)
 {
-    return pthread_create(&_readThread, NULL, &GetData, (void*)0);
+    return pthread_create(&_readThread, NULL, &GetData, (void*)win);
 }
 
 /*---------------------------------------------------------------------------------
@@ -606,10 +606,9 @@ void *Client::GetData(void *arg) {
     char recvBuffer[MAX_BUFFER] = {'\0'};
     size_t datasize = 0;
     int error = 0;
-
+    QMainWindow* win = (QMainWindow*)arg;
     while(1)
     {
-        std::cerr << "INSIDE GET DATA()" << std::endl;
         if((error = ReceiveData(recvBuffer, &datasize)) != SUCCESS) //Error occured
         {
             std::cerr << "INSIDE RECDATA" << std::endl;
@@ -625,9 +624,10 @@ void *Client::GetData(void *arg) {
         }
         else if(datasize > 1) // Must have received data and not just ACK
         {
+            QString user_str(recvBuffer);
             recvBuffer[datasize-1] = EOT;
             std::cerr << recvBuffer << std::endl;
-            HandleIncomingData(recvBuffer, datasize);
+            QMetaObject::invokeMethod(win, "setEditText", Q_ARG(QString, user_str));
         }
 
         memset(recvBuffer, 0, sizeof(recvBuffer));
@@ -669,6 +669,7 @@ int Client::HandleIncomingData(char *data, size_t datasize) {
      * THIS IS WHERE YOU USE THE DATA AND THE DATASIZE AND TRANSMIT IT
      * TO WHEREVER YOU WANT.
      */
+
 
     return SUCCESS;
 }
@@ -778,7 +779,6 @@ int Client::SetUserName(const char* username) {
     while(!good_name)
     {
         strcpy(sbuf, username);
-        std::cerr << sbuf << ": " << username << std::endl;
         if(strlen(sbuf) > 1)
             good_name = true;
         else
