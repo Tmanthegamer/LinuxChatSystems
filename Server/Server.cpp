@@ -27,8 +27,6 @@
 --   
 --                  void AddUserToConnections(char* name, int socket);
 --    
---                  void SystemFatal(const char*);
---    
 --                  int CloseClient(int client_sd, int index);
 --    
 --                  void SetPort(int _port);
@@ -104,14 +102,14 @@ int main (int argc, char **argv)
     {
         std::cerr << "Can't initiate listen socket" << std::endl;
         delete svr;
-        exit(1);
+        exit(SOCKETERROR);
     }
 
     if(svr->SetSocketOpt())
     {
         std::cerr << "Can't set the socket operation." << std::endl;
         delete svr;
-        exit(1);
+        exit(SOCKETERROR);
     }
 
     switch(argc)
@@ -132,7 +130,7 @@ int main (int argc, char **argv)
     {
         std::cerr << "Socket error, unable to bind and listen." << std::endl;
         delete svr;
-        exit(1);
+        exit(SOCKETERROR);
     }
 
     //Infinite loop that waits for incoming data.
@@ -140,7 +138,7 @@ int main (int argc, char **argv)
     {
         std::cerr << "Socket error, shutting down resources." << std::endl;
         delete svr;
-        exit(1);
+        exit(SOCKETERROR);
     }
 
     delete svr;
@@ -177,7 +175,6 @@ int Server::InitListenSocket()
 	// Create a stream socket
     if ((_listen_sd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
 	{
-		SystemFatal("Cannot Create Socket!");
 		return SOCKETERROR;
 	}
 	return SUCCESS;
@@ -213,7 +210,6 @@ int Server::SetSocketOpt()
     int flag = SOCKOPTFLAG;
     if (setsockopt (_listen_sd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag)) == -1)
 	{
-        SystemFatal("setsockopt");
 		return SOCKOPTERROR;
 	}
 	return SUCCESS;
@@ -254,13 +250,11 @@ int Server::BindSocketAndListen()
 
     if (bind(_listen_sd, (struct sockaddr *)&_server, sizeof(_server)) == -1)
 	{
-		SystemFatal("bind error");
 		return SOCKETERROR;
 	}
 
     if (listen(_listen_sd, LISTENQ) == -1) // queue up to LISTENQ connect requests
 	{
-		SystemFatal("listen failure");
 		return SOCKETERROR;
 	}
 
@@ -299,6 +293,7 @@ int Server::BindSocketAndListen()
 ---------------------------------------------------------------------------------*/
 int Server::WriteToAllClients(char* data, size_t datasize, int client)
 {
+    char ack[1] = { ACK };
     if(_maxi >= FD_SETSIZE)
 	{
         fprintf (stderr, "Too many clients in WriteToAllClients\n");
@@ -313,14 +308,12 @@ int Server::WriteToAllClients(char* data, size_t datasize, int client)
 		}
 		else
         {
-			//printf("Sent:[%s] Size:[%lu] Client:[%d]\n", data, datasize, _client[i]);
-
 			//Ignore any errors when failing to write to a client.
-			send(_client[i], data, datasize, 0);	 // echo to client
+			send(_client[i], data, datasize, 0);
 		}
 	}
 
-    //send(client, ack, 1, 0);
+    send(client, ack, 1, 0); // Send a success message to the original sender.
 
     return SUCCESS;
 }
@@ -395,14 +388,16 @@ int Server::ReceivePacketFromClient(int client_sd, int index)
 		bytes_to_read -= n;
 	}
 
-	if(total_bytes_read == 0) //The client has disconnected.
+	if(total_bytes_read == 0 || n == 0) //The client has disconnected.
 	{
-		printf(" Remote Address:  %s closed connection\n", inet_ntoa(_client_addr.sin_addr));
 		CloseClient(client_sd, index);
 	}
     else if(total_bytes_read > 0)	//If all the data has been read.
 	{
         AppendUserNameToMessage(client_sd, buf, &total_bytes_read);
+        
+        std::cerr << buf << std::endl;
+        
         WriteToAllClients(buf, total_bytes_read, client_sd);
 	}
 	else if(n == -1)
@@ -473,16 +468,15 @@ int Server::SelectIncomingData()
             {
                 if(error == TOOMANYCLIENTSERROR) //Acceptable error, ignore request.
                 {
-                    //TODO print out a warning for too many clients
+                    std::cerr << "Too many clients, connection refused." << std::endl;
                 }
                 else if(error == SOCKETERROR)
                 {
-                    //TODO destroy all connections, critical error.
-                    return SOCKETERROR;
+                    std::cerr << "Client was unable to connected." << std::endl;
                 }
                 else if(error == BUFFEROVERFLOW)
                 {
-                    //TODO handle bufferoverflow
+                    std::cerr << "Corruption occured with client data. Connection refused." << std::endl;
                 }
             }
 
@@ -551,21 +545,17 @@ int Server::AcceptNewConnection()
 
 	if ((new_sd = accept(_listen_sd, (struct sockaddr *) &_client_addr, &client_len)) == -1)
 	{
-		SystemFatal("accept error");
 		return SOCKETERROR;
 	}
 
-	printf(" Remote Address:  %s\n", inet_ntoa(_client_addr.sin_addr));
-
     if ((bytes = recv(new_sd, buf, BUFLEN, 0)) == -1) // Get the client's username.
     {
-        printf("Unable to receive client's username.\n");
         return SOCKETERROR;
     }
 
     if(bytes < 0 || buf[bytes-1] != EOT)
     {
-        printf("Client username could not be accepted.\n");
+        close(new_sd);
         return SOCKETERROR;
     }
 
@@ -573,7 +563,6 @@ int Server::AcceptNewConnection()
 
     if (send(new_sd, eot, 1, 0) == -1)
     {
-        printf("Unable to acknowledge client's username.\n");
         return SOCKETERROR;
     }  
 
@@ -592,11 +581,13 @@ int Server::AcceptNewConnection()
 
 	if (i == FD_SETSIZE)
 	{
-		printf ("Too many clients\n");
+		close(new_sd);
 		return TOOMANYCLIENTSERROR;
 	}
 
     AddUserToConnections(buf, inet_ntoa(_client_addr.sin_addr), new_sd);
+    
+    BroadcastNewConnection(new_sd);
 
 	FD_SET (new_sd, &_all_set); 	// add new descriptor to set
 
@@ -610,33 +601,6 @@ int Server::AcceptNewConnection()
 }
 
 /*---------------------------------------------------------------------------------
---  FUNCTION:       System Fatal
---
---  DATE:           March 13, 2016
---
---  REVISED:        (None)
---
---  DESIGNER:       Tyler Trepanier
---
---  PROGRAMMER:     Tyler Trepanier
---
---  INTERFACE:      void Server::SystemFatal(const char* message)
---
---  PARAMETERS:     const char* error
---                      Error message to be added to the perror function
---
---  RETURNS:        void
---                      No return value.
---
---  NOTES:
---  Prints an error message indicating the failure.
----------------------------------------------------------------------------------*/
-void Server::SystemFatal(const char* message)
-{
-	perror (message);
-}
-
-/*---------------------------------------------------------------------------------
 --  FUNCTION:       Close Client Connection
 --
 --  DATE:           March 13, 2016
@@ -644,6 +608,8 @@ void Server::SystemFatal(const char* message)
 --  REVISED:        March 17, 2016 (Tyler Trepanier)
 --                      Added in username functionality to the Client and the
 --                      Server.
+--                  March 23, 2016 (Tyler Trepanier)
+--                      Broadcast to all clients a disconnection.
 --
 --  DESIGNER:       Tyler Trepanier
 --
@@ -660,14 +626,38 @@ void Server::SystemFatal(const char* message)
 --                      -Returns 0 on SUCCESS
 --
 --  NOTES:
---  Closes the TCP socket and frees all client used resources
+--  Closes the TCP socket, broadcasts to all clients that a client has
+--  disconnected and frees all disconnected client's used resources.
 ---------------------------------------------------------------------------------*/
 int Server::CloseClient(int client_sd, int index)
 {
+    char msg[BUFLEN] = {'\0'};
+    size_t msgSize = 0;
+    std::string newMsg;
+    std::string disconnect("has disconnected.");
+    std::map<int, std::string>::iterator it = _clientUsernameMap.find(client_sd);
+    
+    if(it == _clientUsernameMap.end()) {
+        newMsg = "Anonymous Hacker " + disconnect;
+    } else {
+        newMsg = it->second + " " + disconnect;
+    }
+
+    sprintf(msg, "%s", newMsg.c_str());
+    
+    msgSize = strlen(msg) + 2;      // Allocate space for the NULL and EOT
+    msg[msgSize - 2] = '\0';
+    msg[msgSize - 1] = EOT;
+    
+    WriteToAllClients(msg, msgSize, -1);
+    
+    std::cerr << msg << std::endl; 
+
     close(client_sd);
     FD_CLR(client_sd, &_all_set);
     _client[index] = -1;
     --_maxi;
+    
     _clientUsernameMap.erase(client_sd);
 
     return SUCCESS;
@@ -790,14 +780,50 @@ void Server::AddUserToConnections(char *name, char *ipAddress, int socket)
     _clientUsernameMap.insert(std::make_pair(socket, temp));
 }
 
-void Server::GenerateColourForUser(char *user)
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Broadcast New Connections to Connected Clients
+--
+--  DATE:           March 22, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      void BroadcastNewConnection(int new_client)
+--
+--  PARAMETERS:     int new_client
+--                      Socket for the new client
+--
+--  RETURNS:        void
+--                      No return value.
+--
+--  NOTES:
+--  Wrapper function that broadcasts a connection message to all previously
+--  connected clients;
+---------------------------------------------------------------------------------*/
+void Server::BroadcastNewConnection(int new_client)
 {
-    char temp[MAX_BUFFER];
-    srand(time(NULL));
-    int random1 = rand() % 7 + 31;
-    char num[BUFLEN];
-    sprintf(num, "%d", random1);
+    std::string newMsg;
+    char msg[MAX_BUFFER] = {'\0'};
+    std::string temp(" has connected to the chat room, play nice! :)");
+    
+    std::map<int, std::string>::iterator it = _clientUsernameMap.find(new_client);
+    if(it == _clientUsernameMap.end()) {
+        newMsg = "Anonymous Hacker" + temp;
+    } else {
+        newMsg = it->second + temp;
+    }
+    
+    std::cerr << newMsg << std::endl;
+    
+    size_t size = strlen(newMsg.c_str()) + 2;
+    sprintf(msg, "%s", newMsg.c_str());
 
-    sprintf(temp, "\033[0;%sm%s\033[0;37m", num, user);
-    memcpy(user, temp, strlen(temp));
+    msg[size - 2] = '\0';
+    msg[size - 1] = EOT;
+    
+    WriteToAllClients(msg, size, new_client);
+    
 }

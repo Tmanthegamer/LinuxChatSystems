@@ -30,8 +30,6 @@
 --   
 --                  void AddUserToConnections(char *name, char *ipAddress, int socket);
 --    
---                  void SystemFatal(const char*);
---    
 --                  int CloseClient(int client_sd, int index);
 --    
 --                  void SetPort(int _port);
@@ -367,30 +365,6 @@ public:
     void AddUserToConnections(char *name, char *ipAddress, int socket);
 
 /*---------------------------------------------------------------------------------
---  FUNCTION:       System Fatal
---
---  DATE:           March 13, 2016
---
---  REVISED:        (None)
---
---  DESIGNER:       Tyler Trepanier
---
---  PROGRAMMER:     Tyler Trepanier
---
---  INTERFACE:      void Server::SystemFatal(const char* message)
---
---  PARAMETERS:     const char* error
---                      Error message to be added to the perror function
---
---  RETURNS:        void
---                      No return value.
---
---  NOTES:
---  Prints an error message indicating the failure.
----------------------------------------------------------------------------------*/
-    void SystemFatal(const char*);
-
-/*---------------------------------------------------------------------------------
 --  FUNCTION:       Close Client Connection
 --
 --  DATE:           March 13, 2016
@@ -414,7 +388,8 @@ public:
 --                      -Returns 0 on SUCCESS
 --
 --  NOTES:
---  Closes the TCP socket and frees all client used resources
+--  Closes the TCP socket, broadcasts to all clients that a client has
+--  disconnected and frees all disconnected client's used resources.
 ---------------------------------------------------------------------------------*/
     int CloseClient(int client_sd, int index);
 	
@@ -441,11 +416,11 @@ public:
 --  Sets the server's operating port.
 ---------------------------------------------------------------------------------*/
     void SetPort(int _port);
-
+    
 /*---------------------------------------------------------------------------------
---  FUNCTION:       Generate Colour For User
+--  FUNCTION:       Broadcast New Connections to Connected Clients
 --
---  DATE:           March 13, 2016
+--  DATE:           March 22, 2016
 --
 --  REVISED:        (None)
 --
@@ -453,18 +428,19 @@ public:
 --
 --  PROGRAMMER:     Tyler Trepanier
 --
---  INTERFACE:      void GenerateColourForUser(char* user)
+--  INTERFACE:      void BroadcastNewConnection(int new_client)
 --
---  PARAMETERS:     char* user
---                      User that will receive a unique colour.
+--  PARAMETERS:     int new_client
+--                      Socket for the new client
 --
 --  RETURNS:        void
 --                      No return value.
 --
 --  NOTES:
---  Gives the user a random colour for chat use.
+--  Wrapper function that broadcasts a connection message to all previously
+--  connected clients;
 ---------------------------------------------------------------------------------*/
-    void GenerateColourForUser(char* user);
+    void BroadcastNewConnection(int new_client);
 
 private:
     int _maxi;                      //Running total of all clients.
