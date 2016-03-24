@@ -91,43 +91,43 @@ std::fstream Client::_file;
 --  Main entry into the program. Simply creates an instance of a client,
 --  initializes the client and begins the client program.
 -------------------------------------------------------------------------------------*/
-int main (int argc, char **argv)
-{
-    Client *clnt = new Client();
-    int error = 0;
-    char* host = "127.0.0.1";       // Default host
-    short port = SERVER_TCP_PORT;   // Default port
-    bool logToFile = true;          // Default, do not write chat to file
+//int main (int argc, char **argv)
+//{
+//    Client *clnt = new Client();
+//    int error = 0;
+//    char* host = "127.0.0.1";       // Default host
+//    short port = SERVER_TCP_PORT;   // Default port
+//    bool logToFile = true;          // Default, do not write chat to file
 
-    if(argc == 4 && strcmp(argv[3], "log") == 0)
-    {
-        logToFile = true;
-    }
-    if(argc == 3 || argc == 4)
-    {
-        sscanf(argv[2], "%u", &port);
-    }
-    else if(argc >= 2 && argc <= 4)
-    {
-        host = argv[1];
-    }
+//    if(argc == 4 && strcmp(argv[3], "log") == 0)
+//    {
+//        logToFile = true;
+//    }
+//    if(argc == 3 || argc == 4)
+//    {
+//        sscanf(argv[2], "%u", &port);
+//    }
+//    else if(argc >= 2 && argc <= 4)
+//    {
+//        host = argv[1];
+//    }
 
-    if((error = clnt->InitClient(host, port, logToFile)) > 0)
-    {
-        clnt->CheckError(error);
-        return error;
-    }
+//    if((error = clnt->InitClient(host, port, logToFile)) > 0)
+//    {
+//        clnt->CheckError(error);
+//        return error;
+//    }
 
-    //Creating the client was a success, begin the chat.
-    if((error = clnt->SendAndReceiveData()) > 0)
-    {
-        clnt->CheckError(error);
-        return error;
-    }
-    clnt->CloseConnection();
-    return 0;
+//    //Creating the client was a success, begin the chat.
+//    if((error = clnt->SendAndReceiveData()) > 0)
+//    {
+//        clnt->CheckError(error);
+//        return error;
+//    }
+//    clnt->CloseConnection();
+//    return 0;
 
-}
+//}
 
 /*---------------------------------------------------------------------------------
 --  FUNCTION:       Initialize Client
@@ -171,14 +171,11 @@ int main (int argc, char **argv)
 --  function to determine the severity of the error. All socket errors will
 --  terminate the program meanwhile buffer overflows can be ignored.
 ---------------------------------------------------------------------------------*/
-int Client::InitClient(char* host, short port, bool logToFile)
+int Client::InitClient(const char* username, char* host, short port, bool logToFile)
 {
     int error = 0;
     if(port == 0)
         port = SERVER_TCP_PORT;
-
-    if(logToFile && (error = OpenFile()) != SUCCESS)
-        return error;
 
     if((error = CreateSocket(host, port)))
         return error;
@@ -192,7 +189,10 @@ int Client::InitClient(char* host, short port, bool logToFile)
     if((error = Connect()))
         return error;
 
-    if((error = SetUserName()))
+    if((error = SetUserName(username)))
+        return error;
+
+    if(logToFile && (error = OpenFile()) != SUCCESS)
         return error;
 
     return SUCCESS;
@@ -319,20 +319,20 @@ int Client::Connect(void)
 --  will knowingly stop at the EOT so this will allow for variable length
 --  packets.
 ---------------------------------------------------------------------------------*/
-int Client::SendAndReceiveData(void)
+int Client::SendAndReceiveData(const char* username, const char* msg)
 {
     char sbuf[MAX_BUFFER] = {'\0'}; //Send buffer which will store the message.
     int errorCount = 0;             //Allows 5 failures before terminating the client.
     int error[5] = {0};
     size_t bytes_to_send = 0;
 
-    CreateReadThread();
+    //CreateReadThread();
 
     while(errorCount < 5)
     {
-        fgets (sbuf, MAX_BUFFER-1, stdin);
+        //fgets (sbuf, MAX_BUFFER-1, stdin);
 
-        fprintf(stderr, "%s: %s", _username, sbuf); // Print your message to the display
+        //fprintf(stderr, "%s: %s", _username, sbuf); // Print your message to the display
 
         bytes_to_send = strlen(sbuf) + 1;
         sbuf[bytes_to_send - 2] = '\0';
@@ -446,7 +446,9 @@ int Client::SendData(char* data, size_t datasize)
 --  until all contents have been received or there is an error.
 --
 --  There are three conditions that will stop a client from receiving data:
---      1) The server is indicating that this client has successfully broadcasted
+--      1) The server is indicating that thi ui->lineEdit_username->setText("Vivek");
+    ui->lineEdit_ip->setText("192.168.0.21");
+    ui->lineEdit_port->setText("9654");s client has successfully broadcasted
 --         their message.
 --      2) The server has sent a message from another client and is relaying the
 --         message to this client.
@@ -491,7 +493,7 @@ int Client::ReceiveData(char* data, size_t* size)
     (*size) = totalBytes;
     memcpy(data, recvBuffer, sizeof(recvBuffer));
 
-    if(_file.good())
+    if(_file.good() && recvBuffer[0] != ACK)
     {
         LogMessage(data, (*size) - 1);
     }
@@ -510,7 +512,7 @@ int Client::ReceiveData(char* data, size_t* size)
 --
 --  PROGRAMMER:     Tyler Trepanier
 --
---  INTERFACE:      int Client::CreateReadThread(void)
+--  INTERFACE:      int Client::Createf(void)
 --
 --  PARAMETERS:     void
 --                      There are no function arguments.
@@ -522,9 +524,9 @@ int Client::ReceiveData(char* data, size_t* size)
 --  NOTES:
 --  Creates a thread that will continously receive data from the server.
 ---------------------------------------------------------------------------------*/
-int Client::CreateReadThread(void)
+int Client::CreateReadThread(QMainWindow *win)
 {
-    return pthread_create(&_readThread, NULL, &GetData, (void*)0);
+    return pthread_create(&_readThread, NULL, &GetData, (void*)win);
 }
 
 /*---------------------------------------------------------------------------------
@@ -604,11 +606,12 @@ void *Client::GetData(void *arg) {
     char recvBuffer[MAX_BUFFER] = {'\0'};
     size_t datasize = 0;
     int error = 0;
-
+    QMainWindow* win = (QMainWindow*)arg;
     while(1)
     {
         if((error = ReceiveData(recvBuffer, &datasize)) != SUCCESS) //Error occured
         {
+            std::cerr << "INSIDE RECDATA" << std::endl;
             if(error == BUFFEROVERFLOW)
             {
                 std::cerr << "Receive buffer overflow." << std::endl;
@@ -621,8 +624,10 @@ void *Client::GetData(void *arg) {
         }
         else if(datasize > 1) // Must have received data and not just ACK
         {
+            QString user_str(recvBuffer);
             recvBuffer[datasize-1] = EOT;
-            HandleIncomingData(recvBuffer, datasize);
+            std::cerr << recvBuffer << std::endl;
+            QMetaObject::invokeMethod(win, "setEditText", Q_ARG(QString, user_str));
         }
 
         memset(recvBuffer, 0, sizeof(recvBuffer));
@@ -664,6 +669,7 @@ int Client::HandleIncomingData(char *data, size_t datasize) {
      * THIS IS WHERE YOU USE THE DATA AND THE DATASIZE AND TRANSMIT IT
      * TO WHEREVER YOU WANT.
      */
+
 
     return SUCCESS;
 }
@@ -764,7 +770,7 @@ int Client::CreateSocket(char *host, short port) {
 --  server. Any issues with sending to or receiving from the server will result
 --  in a socket error. 
 ---------------------------------------------------------------------------------*/
-int Client::SetUserName(void) {
+int Client::SetUserName(const char* username) {
     char sbuf[BUFLEN] = {'\0'};
     char rbuf[20];
     size_t size = 0;
@@ -772,17 +778,16 @@ int Client::SetUserName(void) {
 
     while(!good_name)
     {
-        std::cerr << "What is your username:";
-        fgets (sbuf, BUFLEN - 1, stdin);
-
+        strcpy(sbuf, username);
         if(strlen(sbuf) > 1)
             good_name = true;
         else
             std::cerr << "A username is required..." << std::endl;
     }
 
-    size = strlen(sbuf);
+    size = strlen(sbuf)+1;
     //End of input
+    std::cerr << size << std::endl;
 
     sbuf[size - 1] = '\0';
     sbuf[size] = EOT;

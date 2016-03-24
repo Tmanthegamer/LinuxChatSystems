@@ -28,9 +28,7 @@
 --    
 --                  int AcceptNewConnection();
 --   
---                  void AddUserToConnections(char* name, int socket);
---    
---                  void SystemFatal(const char*);
+--                  void AddUserToConnections(char *name, char *ipAddress, int socket);
 --    
 --                  int CloseClient(int client_sd, int index);
 --    
@@ -348,10 +346,12 @@ public:
 --
 --  PROGRAMMER:     Tyler Trepanier
 --
---  INTERFACE:      void Server::AddUserToConnections(char *name, int socket)
+--  INTERFACE:      void Server::AddUserToConnections(char *name, char *ipAddress, int socket)
 --
 --  PARAMETERS:     char *name 
---                      Desired client name.                                   
+--                      Desired client name.
+--                  char *ipAddress
+--                      Client's IP Address.
 --                  int socket
 --                      Socket used as the key in the client username map.
 --
@@ -362,31 +362,7 @@ public:
 --  Adds in the client username to the client username map and uses their socket
 --  as the key.
 ---------------------------------------------------------------------------------*/
-    void AddUserToConnections(char* name, int socket);
-
-/*---------------------------------------------------------------------------------
---  FUNCTION:       System Fatal
---
---  DATE:           March 13, 2016
---
---  REVISED:        (None)
---
---  DESIGNER:       Tyler Trepanier
---
---  PROGRAMMER:     Tyler Trepanier
---
---  INTERFACE:      void Server::SystemFatal(const char* message)
---
---  PARAMETERS:     const char* error
---                      Error message to be added to the perror function
---
---  RETURNS:        void
---                      No return value.
---
---  NOTES:
---  Prints an error message indicating the failure.
----------------------------------------------------------------------------------*/
-    void SystemFatal(const char*);
+    void AddUserToConnections(char *name, char *ipAddress, int socket);
 
 /*---------------------------------------------------------------------------------
 --  FUNCTION:       Close Client Connection
@@ -412,7 +388,8 @@ public:
 --                      -Returns 0 on SUCCESS
 --
 --  NOTES:
---  Closes the TCP socket and frees all client used resources
+--  Closes the TCP socket, broadcasts to all clients that a client has
+--  disconnected and frees all disconnected client's used resources.
 ---------------------------------------------------------------------------------*/
     int CloseClient(int client_sd, int index);
 	
@@ -439,6 +416,31 @@ public:
 --  Sets the server's operating port.
 ---------------------------------------------------------------------------------*/
     void SetPort(int _port);
+    
+/*---------------------------------------------------------------------------------
+--  FUNCTION:       Broadcast New Connections to Connected Clients
+--
+--  DATE:           March 22, 2016
+--
+--  REVISED:        (None)
+--
+--  DESIGNER:       Tyler Trepanier
+--
+--  PROGRAMMER:     Tyler Trepanier
+--
+--  INTERFACE:      void BroadcastNewConnection(int new_client)
+--
+--  PARAMETERS:     int new_client
+--                      Socket for the new client
+--
+--  RETURNS:        void
+--                      No return value.
+--
+--  NOTES:
+--  Wrapper function that broadcasts a connection message to all previously
+--  connected clients;
+---------------------------------------------------------------------------------*/
+    void BroadcastNewConnection(int new_client);
 
 private:
     int _maxi;                      //Running total of all clients.
