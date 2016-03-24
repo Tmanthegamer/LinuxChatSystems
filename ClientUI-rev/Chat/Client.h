@@ -75,6 +75,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <iostream>
+#include <QWidget>
+#include <QMainWindow>
 #include "PacketUtilities.h"
 
 
@@ -128,7 +130,8 @@ public:
 --  function to determine the severity of the error. All socket errors will
 --  terminate the program meanwhile buffer overflows can be ignored.
 ---------------------------------------------------------------------------------*/
-    int InitClient(char* host = "127.0.0.1",
+    int InitClient(const char* username = "anonymous",
+                   char* host = "127.0.0.1",
                    short port  = SERVER_TCP_PORT,
                    bool logToFile = false);
 
@@ -368,7 +371,7 @@ public:
 --  will knowingly stop at the EOT so this will allow for variable length
 --  packets.
 ---------------------------------------------------------------------------------*/
-    int SendAndReceiveData(void);
+    int SendAndReceiveData(const char* username, const char* msg);
     
 /*---------------------------------------------------------------------------------
 --  FUNCTION:       Send Data
@@ -498,7 +501,7 @@ public:
 --  NOTES:
 --  Creates a thread that will continously receive data from the server.
 ---------------------------------------------------------------------------------*/
-    int CreateReadThread(void);
+    int CreateReadThread(QMainWindow *);
     
 /*---------------------------------------------------------------------------------
 --  FUNCTION:       Handle Incoming Data
@@ -609,7 +612,7 @@ public:
 --  server. Any issues with sending to or receiving from the server will result
 --  in a socket error. 
 ---------------------------------------------------------------------------------*/
-    int SetUserName(void);
+    int SetUserName(const char* username);
 
 private:
     short _port;                    // Communication Port

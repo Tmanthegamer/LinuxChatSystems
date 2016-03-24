@@ -26,6 +26,9 @@ public:
     short port;     // Default port
     bool logToFile; // Default, do not write chat to file
 
+public slots:
+    void setEditText(const QString &str);
+
 private slots:
     void on_pushButton_chat_clicked();
 
