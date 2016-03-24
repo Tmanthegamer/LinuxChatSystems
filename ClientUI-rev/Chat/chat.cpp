@@ -46,12 +46,12 @@ void Chat::on_pushButton_chat_clicked()
         if((error = clnt->InitClient(username.toStdString().c_str(), host, port, logToFile)) > 0)
         {
             clnt->CheckError(error);
-            exit(0);
+            ui->label_error->setText("Could not connect!");
         }
         else if( error == 0 )
         {
             ui->label_error->setText("");
-            ui->listWidget_users->addItem(username);
+            //ui->listWidget_users->addItem(username);
             ui->listWidget_messages->addItem("Connected as " + username);
             clnt->CreateReadThread(this);
             ui->stackedWidget->setCurrentIndex(1);

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>573</width>
-    <height>370</height>
+    <width>484</width>
+    <height>379</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,7 +36,7 @@
      <widget class="QLineEdit" name="lineEdit_ip">
       <property name="geometry">
        <rect>
-        <x>190</x>
+        <x>110</x>
         <y>200</y>
         <width>113</width>
         <height>32</height>
@@ -52,9 +52,9 @@
      <widget class="QLabel" name="label_ip">
       <property name="geometry">
        <rect>
-        <x>190</x>
+        <x>110</x>
         <y>180</y>
-        <width>81</width>
+        <width>111</width>
         <height>20</height>
        </rect>
       </property>
@@ -70,14 +70,17 @@
       <property name="text">
        <string>IP Address</string>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
      </widget>
      <widget class="QPushButton" name="pushButton_chat">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>300</y>
-        <width>95</width>
-        <height>30</height>
+        <x>230</x>
+        <y>240</y>
+        <width>111</width>
+        <height>51</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -90,9 +93,9 @@
      <widget class="QLabel" name="label_username">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>120</y>
-        <width>81</width>
+        <x>110</x>
+        <y>240</y>
+        <width>111</width>
         <height>20</height>
        </rect>
       </property>
@@ -111,13 +114,16 @@
       <property name="text">
        <string>Username</string>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
      </widget>
      <widget class="QLabel" name="label_port">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>240</y>
-        <width>81</width>
+        <x>230</x>
+        <y>180</y>
+        <width>111</width>
         <height>20</height>
        </rect>
       </property>
@@ -133,28 +139,37 @@
       <property name="text">
        <string>Port</string>
       </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
      </widget>
      <widget class="QLabel" name="label_title">
       <property name="geometry">
        <rect>
-        <x>190</x>
+        <x>110</x>
         <y>30</y>
-        <width>321</width>
-        <height>41</height>
+        <width>231</width>
+        <height>111</height>
        </rect>
       </property>
       <property name="styleSheet">
        <string notr="true">font: 32pt &quot;VL Gothic&quot;;</string>
       </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
       <property name="text">
        <string>C H A T</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
      <widget class="QLineEdit" name="lineEdit_port">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>260</y>
+        <x>230</x>
+        <y>200</y>
         <width>113</width>
         <height>32</height>
        </rect>
@@ -169,8 +184,8 @@
      <widget class="QLineEdit" name="lineEdit_username">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>140</y>
+        <x>110</x>
+        <y>260</y>
         <width>113</width>
         <height>32</height>
        </rect>
@@ -185,17 +200,17 @@
        <bool>false</bool>
       </property>
      </widget>
-     <widget class="QLabel" name="label_error">
+     <widget class="QLabel" name="label_tag">
       <property name="geometry">
        <rect>
-        <x>190</x>
-        <y>100</y>
-        <width>261</width>
+        <x>110</x>
+        <y>150</y>
+        <width>271</width>
         <height>20</height>
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true"/>
+       <string notr="true">text-color: rgb(255, 0, 0);</string>
       </property>
       <property name="text">
        <string/>
@@ -204,37 +219,40 @@
      <widget class="QCheckBox" name="checkBox_logs">
       <property name="geometry">
        <rect>
-        <x>290</x>
+        <x>240</x>
         <y>300</y>
-        <width>95</width>
-        <height>25</height>
+        <width>131</width>
+        <height>31</height>
        </rect>
       </property>
       <property name="text">
        <string>Save Logs</string>
       </property>
      </widget>
-    </widget>
-    <widget class="QWidget" name="page_2">
-     <widget class="QListWidget" name="listWidget_users">
+     <widget class="QLabel" name="label_error">
       <property name="geometry">
        <rect>
-        <x>10</x>
-        <y>30</y>
-        <width>141</width>
-        <height>231</height>
+        <x>60</x>
+        <y>150</y>
+        <width>341</width>
+        <height>20</height>
        </rect>
       </property>
-      <property name="styleSheet">
-       <string notr="true">background-color:rgb(255, 255, 255)</string>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
+    </widget>
+    <widget class="QWidget" name="page_2">
      <widget class="QPlainTextEdit" name="plainTextEdit_msg">
       <property name="geometry">
        <rect>
         <x>10</x>
         <y>270</y>
-        <width>421</width>
+        <width>341</width>
         <height>61</height>
        </rect>
       </property>
@@ -245,7 +263,7 @@
      <widget class="QPushButton" name="pushButton_sendmsg">
       <property name="geometry">
        <rect>
-        <x>440</x>
+        <x>360</x>
         <y>270</y>
         <width>95</width>
         <height>61</height>
@@ -261,9 +279,9 @@
      <widget class="QListWidget" name="listWidget_messages">
       <property name="geometry">
        <rect>
-        <x>160</x>
+        <x>10</x>
         <y>31</y>
-        <width>371</width>
+        <width>441</width>
         <height>231</height>
        </rect>
       </property>
@@ -301,7 +319,7 @@
      <widget class="QLabel" name="label">
       <property name="geometry">
        <rect>
-        <x>160</x>
+        <x>10</x>
         <y>10</y>
         <width>81</width>
         <height>20</height>
@@ -317,37 +335,8 @@
        <string>Messages</string>
       </property>
      </widget>
-     <widget class="QLabel" name="label_2">
-      <property name="geometry">
-       <rect>
-        <x>10</x>
-        <y>10</y>
-        <width>81</width>
-        <height>20</height>
-       </rect>
-      </property>
-      <property name="frameShape">
-       <enum>QFrame::StyledPanel</enum>
-      </property>
-      <property name="frameShadow">
-       <enum>QFrame::Sunken</enum>
-      </property>
-      <property name="text">
-       <string>Users</string>
-      </property>
-     </widget>
     </widget>
    </widget>
-  </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>573</width>
-     <height>26</height>
-    </rect>
-   </property>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -358,6 +347,16 @@
    </attribute>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>484</width>
+     <height>26</height>
+    </rect>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
