@@ -225,6 +225,9 @@
         <height>31</height>
        </rect>
       </property>
+      <property name="styleSheet">
+       <string notr="true">font: 11pt &quot;Carlito&quot;;</string>
+      </property>
       <property name="text">
        <string>Save Logs</string>
       </property>

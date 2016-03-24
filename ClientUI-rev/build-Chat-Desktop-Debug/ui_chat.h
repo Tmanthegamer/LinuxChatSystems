@@ -121,6 +121,7 @@ public:
         checkBox_logs = new QCheckBox(page);
         checkBox_logs->setObjectName(QStringLiteral("checkBox_logs"));
         checkBox_logs->setGeometry(QRect(240, 300, 131, 31));
+        checkBox_logs->setStyleSheet(QStringLiteral("font: 11pt \"Carlito\";"));
         label_error = new QLabel(page);
         label_error->setObjectName(QStringLiteral("label_error"));
         label_error->setGeometry(QRect(60, 150, 341, 20));

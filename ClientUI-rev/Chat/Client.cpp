@@ -177,9 +177,6 @@ int Client::InitClient(const char* username, char* host, short port, bool logToF
     if(port == 0)
         port = SERVER_TCP_PORT;
 
-    if(logToFile && (error = OpenFile()) != SUCCESS)
-        return error;
-
     if((error = CreateSocket(host, port)))
         return error;
 
@@ -193,6 +190,9 @@ int Client::InitClient(const char* username, char* host, short port, bool logToF
         return error;
 
     if((error = SetUserName(username)))
+        return error;
+
+    if(logToFile && (error = OpenFile()) != SUCCESS)
         return error;
 
     return SUCCESS;

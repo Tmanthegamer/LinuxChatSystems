@@ -45,6 +45,12 @@ void Chat::on_pushButton_chat_clicked()
         std::cerr << host << std::endl;
         if((error = clnt->InitClient(username.toStdString().c_str(), host, port, logToFile)) > 0)
         {
+            if( error == CANNOTOPENFILE )
+            {
+                logToFile = false;
+                ui->stackedWidget->setCurrentIndex(1);
+            }
+
             clnt->CheckError(error);
             ui->label_error->setText("Could not connect!");
         }
