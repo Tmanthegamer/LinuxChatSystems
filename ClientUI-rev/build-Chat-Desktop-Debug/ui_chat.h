@@ -90,7 +90,7 @@ public:
         font.setBold(true);
         font.setWeight(75);
         pushButton_chat->setFont(font);
-        pushButton_chat->setStyleSheet(QStringLiteral("background-color: rgb(158, 204, 143); text-color: \"white\"; border-radius: 15px;"));
+        pushButton_chat->setStyleSheet(QStringLiteral("background-color: rgb(158, 204, 143); text-color: \"white\"; border-radius: 15px; color: #333333;"));
         pushButton_chat->setFlat(false);
         label_username = new QLabel(page);
         label_username->setObjectName(QStringLiteral("label_username"));

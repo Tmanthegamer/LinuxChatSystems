@@ -91,7 +91,7 @@
        </font>
       </property>
       <property name="styleSheet">
-       <string notr="true">background-color: rgb(158, 204, 143); text-color: &quot;white&quot;; border-radius: 15px;</string>
+       <string notr="true">background-color: rgb(158, 204, 143); text-color: &quot;white&quot;; border-radius: 15px; color: #333333;</string>
       </property>
       <property name="text">
        <string>Chat!</string>
