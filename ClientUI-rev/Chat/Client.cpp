@@ -55,6 +55,7 @@
 
 #include "Client.h"
 int Client::_socket = -1; // Static socket used to read data from a Server.
+bool Client::_msgReceived = false;
 std::fstream Client::_file;
 
 /*-------------------------------------------------------------------------------------
@@ -194,6 +195,8 @@ int Client::InitClient(const char* username, char* host, short port, bool logToF
 
     if(logToFile && (error = OpenFile()) != SUCCESS)
         return error;
+
+    _msgReceived = true;
 
     return SUCCESS;
 }
@@ -389,6 +392,11 @@ int Client::SendData(char* data, size_t datasize)
     char* dataPointer = data;
     size_t bytesSent = 0;
 
+    if(!_msgReceived)
+    {
+        return SOCKETERROR;
+    }
+
     while(!sendComplete)
     {
         if((bytesSent = send (_socket, data, datasize, 0)) == SOCKETERROR)
@@ -406,6 +414,8 @@ int Client::SendData(char* data, size_t datasize)
     }
     if(_file.good())
         LogMyMessage(data);
+
+    _msgReceived = false;
 
     return SUCCESS;
 }
@@ -492,6 +502,9 @@ int Client::ReceiveData(char* data, size_t* size)
 
     (*size) = totalBytes;
     memcpy(data, recvBuffer, sizeof(recvBuffer));
+
+    if(recvBuffer[0] == ACK)
+        _msgReceived = true;
 
     if(_file.good() && recvBuffer[0] != ACK)
     {

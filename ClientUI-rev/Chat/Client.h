@@ -623,6 +623,7 @@ private:
     char _host[20];                 // Host address in char* string literal form
     char _username[BUFLEN];         // Client's username
     pthread_t _readThread;          // Read thread
+    static bool _msgReceived;       // Indicator of a successful message send.
 
 };
 

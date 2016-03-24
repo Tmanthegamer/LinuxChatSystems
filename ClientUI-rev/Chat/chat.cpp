@@ -117,6 +117,18 @@ void Chat::on_pushButton_sendmsg_clicked()
     ui->listWidget_messages->scrollToBottom();
     ui->plainTextEdit_msg->document()->setPlainText("");
 
-    clnt->SendData(user_buf, user_len+2);
+    error = clnt->SendData(user_buf, user_len+2);
+
+    if(error)
+    {
+        exit(1);
+        ui->label_error->setText("Server disconnected!");
+        ui->stackedWidget->setCurrentIndex(0);
+        while(ui->listWidget_messages->count()>0)
+        {
+            std::cerr << "hi" << std::endl;
+            ui->listWidget_messages->takeItem(0);
+        }
+    }
 
 }
