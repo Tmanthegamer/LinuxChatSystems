@@ -1,4 +1,6 @@
 ### Custom ignores
+build*/*
+
 */CMakeLists.txt
 *.*~
 */*.*~

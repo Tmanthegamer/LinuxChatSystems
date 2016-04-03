@@ -1,6 +1,6 @@
 #-------------------------------------------------
 #
-# Project created by QtCreator 2016-03-16T14:58:13
+# Project created by QtCreator 2016-03-23T09:53:16
 #
 #-------------------------------------------------
 
@@ -11,10 +11,15 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = Chat
 TEMPLATE = app
 
+OUTPUT += Console
+
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        chat.cpp \
+		Client.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += chat.h \
+			Client.h \
+			PacketUtilities.h
 
-FORMS    += mainwindow.ui
+FORMS    += chat.ui
